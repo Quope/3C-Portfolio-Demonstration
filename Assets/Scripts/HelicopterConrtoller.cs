@@ -61,8 +61,8 @@ public class HelicopterConrtoller : MonoBehaviour
 
     // Control
     private float controlTimer;
-    private float controlValue;
-    private float controlRotValue;
+    public float controlValue;
+    public float controlRotValue;
     private float controlRotTimer;
     private float controlLeftTimer;
     private float controlRightTimer;
@@ -72,6 +72,9 @@ public class HelicopterConrtoller : MonoBehaviour
     private float inclinationControlRight;
     public float curControlXAngle;
     public float curControlZAngle;
+
+    public float xAngle;
+    public float zAngle;
     
 
     // Rotation
@@ -99,6 +102,7 @@ public class HelicopterConrtoller : MonoBehaviour
     private InputAction controlRightAction;
     private InputAction interactAction;
     private InputAction lookAction;
+    public Vector3 mouseDelta;
 
 
     // Si on bouge alors le truc va suivre la cam mais si on bouge pas alors on peut tourner la cam a 360 degrés.
@@ -253,9 +257,6 @@ public class HelicopterConrtoller : MonoBehaviour
             controlRotTimer -= Time.fixedDeltaTime;
         }
 
-        //backRotor.transform.localRotation = Quaternion.Euler(backRotor.transform.localRotation.x - turnLittleRotator, 180, transform.rotation.z);
-        //topRotor.transform.localRotation = Quaternion.Euler(transform.rotation.x, topRotor.transform.localRotation.y + turnBigRotator, transform.rotation.z);
-
         backRotor.transform.Rotate(-turnLittleRotator * Time.deltaTime * 2, 0, 0);
         topRotor.transform.Rotate(0, turnBigRotator * Time.deltaTime * 2, 0);
 
@@ -264,15 +265,14 @@ public class HelicopterConrtoller : MonoBehaviour
         if (stateHelicopter == StateHelicopter.ON)
         {
             rb.AddForce(transform.up * curFlyForce * flyValue, ForceMode.Force);
+            Debug.Log("Force : " + transform.up * curFlyForce * flyValue);
         }
     }
 
     private void FixedUpdate()
     {
-        //speedKmh = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.forward) * 3.6f);
-
+        //float speedzebi = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.forward) * 3.6f);
         Vector3 horizontalVelocity = rb.linearVelocity;
-        horizontalVelocity.y = 0;
 
         speedKmh = Mathf.Abs(horizontalVelocity.magnitude * 3.6f);
         Debug.Log("Speed " + speedKmh);
@@ -319,6 +319,10 @@ public class HelicopterConrtoller : MonoBehaviour
             turnBigRotator = 0;
             activationTimer = 0;
         }
+        else
+        {
+            Debug.Log("ERROR");
+        }
 
         if (turnLittleRotator >= maxLittleRotSpeed + 370)
         {
@@ -329,8 +333,8 @@ public class HelicopterConrtoller : MonoBehaviour
             turnBigRotator = maxBigRotSpeed + 10;
         }
 
-        Debug.Log("Little : " + turnLittleRotator);
-        Debug.Log("Big : " + turnBigRotator);
+        //Debug.Log("Little : " + turnLittleRotator);
+        //Debug.Log("Big : " + turnBigRotator);
 
         flyTimer = Mathf.Clamp(flyTimer, 0f, flyTime);
         float a = flyCurve.Evaluate(flyTimer / flyTime);
@@ -353,19 +357,19 @@ public class HelicopterConrtoller : MonoBehaviour
         if (stateHelicopter == StateHelicopter.ON)
         {
             // ptn yes ca marche
-            float x = transform.eulerAngles.x; 
+            xAngle = transform.eulerAngles.x; 
 
-            if (x > 180f) x -= 360;
+            if (xAngle > 180f) xAngle -= 360;
 
-            x = Mathf.Clamp(transform.rotation.x + curControlXAngle * controlValue, -controlXAngle, controlXAngle);
+            xAngle = Mathf.Clamp(transform.rotation.x + curControlXAngle * controlValue, -controlXAngle, controlXAngle);
 
-            float z = transform.eulerAngles.z; 
+            zAngle = transform.eulerAngles.z; 
 
-            if (z > 180f) z -= 360;
+            if (zAngle > 180f) zAngle -= 360;
 
-            z = Mathf.Clamp(transform.rotation.z + curControlZAngle * controlRotValue, -controlZAngle, controlZAngle);
+            zAngle = Mathf.Clamp(transform.rotation.z + curControlZAngle * controlRotValue, -controlZAngle, controlZAngle);
 
-            Quaternion targetRot = Quaternion.Euler(x, transform.eulerAngles.y + curAccelerationRot, z);
+            Quaternion targetRot = Quaternion.Euler(xAngle, transform.eulerAngles.y + curAccelerationRot, zAngle);
 
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.fixedDeltaTime * rotationSpeed);
         }
@@ -373,7 +377,7 @@ public class HelicopterConrtoller : MonoBehaviour
 
     private void MouseLogic()
     {
-        Vector3 mouseDelta = lookAction.ReadValue<Vector2>() * sensitivity;
+        mouseDelta = lookAction.ReadValue<Vector2>() * sensitivity;
 
         mouseDelta.x = -mouseDelta.x;
 
