@@ -232,10 +232,17 @@ MonoBehaviour:
   rotSmoothness: 7
   moveOffset: {x: 0, y: 2.4, z: -6}
   rotOffset: {x: 0, y: 1, z: 0}
-  carTarget: {fileID: 2055637342}
+  target: {fileID: 0}
   sportCarController: {fileID: 7228155704093129780}
+  helicopterController: {fileID: 0}
+  eventPossess: {fileID: 0}
   divide: 15
+  basicMoveOffsetZ: -6
+  maxMoveOffsetZ: -9
+  basicRotOffsetY: 1
+  maxRotOffsetY: 2
   baseCamFOV: 60
+  maxCamFOV: 110
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -495,8 +502,12 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1824718762079319328, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LinearDamping
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1824718762079319328, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: m_AngularDamping
-      value: 20
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2048327071849836268, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: m_Name
@@ -551,8 +562,24 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1961741341}
     - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
-      propertyPath: staticFlyForce
+      propertyPath: flyDownForce
       value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: controlXAngle
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: rotationSpeed
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: maxBigRotSpeed
+      value: 700
+      objectReference: {fileID: 0}
+    - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: staticFlyForce
+      value: 420
       objectReference: {fileID: 0}
     - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: accelerationRot
@@ -560,15 +587,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: bigRotatorSpeed
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: maxLittleRotSpeed
-      value: 300
+      value: 700
       objectReference: {fileID: 0}
     - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: littleRotatorSpeed
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: maxAccelerationRot
@@ -578,13 +605,52 @@ PrefabInstance:
       propertyPath: minAccelerationRot
       value: -800
       objectReference: {fileID: 0}
+    - target: {fileID: 4763678272563139303, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763678272563139303, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1600
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763678272563139303, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9914449
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763678272563139303, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.13052616
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763678272563139303, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763678272563139303, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763678272563139303, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763678272563139303, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763678272563139303, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 2180900619293236162, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1961741339}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6429551657026979802, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      insertIndex: 3
+      addedObject: {fileID: 1863994333}
   m_SourcePrefab: {fileID: 100100000, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
 --- !u!1 &832575517
 GameObject:
@@ -635,6 +701,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1166234708 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3103750422555788341, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+  m_PrefabInstance: {fileID: 584666369}
+  m_PrefabAsset: {fileID: 0}
 --- !u!20 &1174557440 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 2124176054926881127, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
@@ -1023,6 +1094,38 @@ WheelCollider:
   m_LayerOverridePriority: 0
   m_Enabled: 1
   m_ProvidesContacts: 0
+--- !u!1 &1863994329 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6429551657026979802, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+  m_PrefabInstance: {fileID: 584666369}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1863994333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1863994329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38fbadbe824778242a96a4a2255f66b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
+  moveSmoothness: 8
+  rotSmoothness: 5
+  moveOffset: {x: 0, y: 400, z: -9}
+  rotOffset: {x: 0, y: 1, z: 0}
+  target: {fileID: 1166234708}
+  sportCarController: {fileID: 7228155704093129780}
+  helicopterController: {fileID: 203163632}
+  eventPossess: {fileID: 4503334668494794438}
+  divide: 10
+  basicMoveOffsetZ: -1600
+  maxMoveOffsetZ: -2000
+  basicRotOffsetY: 1
+  maxRotOffsetY: 2
+  baseCamFOV: 60
+  maxCamFOV: 90
 --- !u!1 &1961741338
 GameObject:
   m_ObjectHideFlags: 0
