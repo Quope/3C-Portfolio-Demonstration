@@ -5,10 +5,10 @@ using UnityEngine.InputSystem;
 
 public class EventPossess : MonoBehaviour
 {
-    public enum PossessState { PLAYER, SPORTCAR, HELICOPTER }
+    public enum PossessState { PLAYER, SPORTCAR, HELICOPTER, TRAIN }
     public PossessState possessState;
 
-    public enum CanEnterIn { NONE, CANSPORTCAR, CANHELICOPTER }
+    public enum CanEnterIn { NONE, CANSPORTCAR, CANHELICOPTER, CANTRAIN }
     public CanEnterIn canEnterIn;
 
     private MonoBehaviour currentController;
@@ -28,25 +28,19 @@ public class EventPossess : MonoBehaviour
         {
             canEnterIn = CanEnterIn.CANHELICOPTER;
         }
+        else if (other.CompareTag("Train"))
+        {
+            canEnterIn = CanEnterIn.CANTRAIN;
+        }
         else 
         {
             canEnterIn = CanEnterIn.NONE;
         }
+        Debug.Log(canEnterIn);
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("SportCar"))
-        {
-            canEnterIn = CanEnterIn.NONE;
-        }
-        else if (other.CompareTag("Helicopter"))
-        {
-            canEnterIn = CanEnterIn.NONE;
-        }
-        else
-        {
-            canEnterIn = CanEnterIn.NONE;
-        }
+        canEnterIn = CanEnterIn.NONE;
     }
 }

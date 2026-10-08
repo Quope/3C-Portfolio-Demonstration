@@ -34,7 +34,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Headbob parameters")]
     [SerializeField] private float headbobAmp = 0.05f;
-    [SerializeField] private float headbobFreq = 3f;
+    [SerializeField] private float headbobFreq = 10f;
     [SerializeField] private float headbobTime = 0.5f;
     [SerializeField] private bool eyeStabilization = true;
     [SerializeField] private Transform camHolder;
@@ -235,7 +235,9 @@ public class PlayerController : MonoBehaviour
             // Headbob position is set in world space to keep it straight
             mainCam.transform.localPosition = new Vector3(0, headbobCurve.Evaluate(headbobTimer / headbobTime) * headbobAmp, 0);
 
-            headbobTimer += Time.deltaTime;
+            Debug.Log(curSpeed);
+
+            headbobTimer += Time.deltaTime * curSpeed / headbobFreq;
             if (headbobTimer > headbobTime)
             {
                 headbobTimer = 0;

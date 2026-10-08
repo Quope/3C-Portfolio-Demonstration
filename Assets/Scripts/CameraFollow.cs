@@ -40,18 +40,18 @@ public class CameraFollow : MonoBehaviour
     // pour faire vraiment tourner la cam faut faire tourner de gauche a droite de facon orbitale le cam Holder avec la souris mais seulement la rotation qu'il faut.
     private void FixedUpdate()
     {
-        //if(eventPossess.possessState == PossessState.HELICOPTER)
-        //{
-        //    FollowTargetHelicopter();
-        //}
-        //else if (eventPossess.possessState == PossessState.SPORTCAR)
-        //{
-        //    FollowTargetCar();
-        //}
-        if(helicopterController.mouseDelta == Vector3.zero)
+        if (eventPossess.possessState == PossessState.HELICOPTER)
         {
-            FollowTargetHelicopter();
+            if (helicopterController.mouseDelta == Vector3.zero)
+            {
+                FollowTargetHelicopter();
+            }
         }
+        else if (eventPossess.possessState == PossessState.SPORTCAR)
+        {
+            FollowTargetCar();
+        }
+
         FOVEffects();
     }
 
@@ -59,7 +59,7 @@ public class CameraFollow : MonoBehaviour
     {
         // position
         Vector3 targetPos = new Vector3();
-        moveOffset.z = Mathf.Clamp((-sportCarController.speedKmh + moveOffset.z), basicMoveOffsetZ, maxMoveOffsetZ);
+        moveOffset.z = Mathf.Clamp((basicMoveOffsetZ + moveOffset.z), basicMoveOffsetZ, maxMoveOffsetZ);
         targetPos = target.TransformPoint(-sportCarController.curAngle / divide, moveOffset.y, moveOffset.z);
 
         transform.position = Vector3.Lerp(transform.position, targetPos, moveSmoothness * Time.deltaTime);
@@ -80,8 +80,8 @@ public class CameraFollow : MonoBehaviour
 
         Vector3 targetPos = new Vector3();
         //float heliSpeedLerp = Mathf.Lerp(basicMoveOffsetZ, maxMoveOffsetZ, helicopterController.speedKmh);
-        //moveOffset.z = Mathf.Clamp((basicMoveOffsetZ + helicopterController.speedKmh + moveOffset.z), basicMoveOffsetZ, maxMoveOffsetZ);
         //moveOffset.y = Mathf.Clamp((basicMoveOffsetY + helicopterController.speedKmh + moveOffset.y), basicMoveOffsetY, maxMoveOffsetY);
+        moveOffset.z = Mathf.Clamp(basicMoveOffsetZ + moveOffset.z, basicMoveOffsetZ, maxMoveOffsetZ);
         targetPos = target.TransformPoint(moveOffset);
         transform.position = Vector3.Lerp(transform.position, targetPos, moveSmoothness * Time.deltaTime);
 
@@ -116,8 +116,23 @@ public class CameraFollow : MonoBehaviour
         //transform.localRotation = Quaternion.Lerp(transform.localRotation, targetRot, rotSmoothness * Time.deltaTime);
     }
 
+    private void FollowTargetTrain()
+    {
+        Vector3 targetPos = new Vector3();
+        moveOffset.z = Mathf.Clamp(basicMoveOffsetZ + moveOffset.z, basicMoveOffsetZ, maxMoveOffsetZ);
+        targetPos = target.TransformPoint(moveOffset);
+        transform.position = Vector3.Lerp(transform.position, targetPos, moveSmoothness * Time.deltaTime);
+
+        var direction = target.position - transform.position;
+        Quaternion targetRot = new Quaternion();
+
+        targetRot = Quaternion.LookRotation(direction + rotOffset, Vector3.up);
+        transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, rotSmoothness * Time.deltaTime);
+    }
+
     private void FOVEffects()
     {
         cam.fieldOfView = Mathf.Clamp(helicopterController.speedKmh + baseCamFOV, baseCamFOV, maxCamFOV);
+        cam.fieldOfView = Mathf.Clamp(sportCarController.speedKmh + baseCamFOV, baseCamFOV, maxCamFOV);
     }
 }

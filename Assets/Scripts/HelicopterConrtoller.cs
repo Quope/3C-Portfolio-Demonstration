@@ -2,6 +2,7 @@ using System.IO;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEngine.GraphicsBuffer;
 
 public class HelicopterConrtoller : MonoBehaviour
 {
@@ -13,9 +14,14 @@ public class HelicopterConrtoller : MonoBehaviour
     [SerializeField] private float flyTime = 1;
     [SerializeField] private float staticFlyForce = 500f;
     [SerializeField] private AnimationCurve flyCurve;
+    [SerializeField] private float basicLinearVelo;
+    [SerializeField] private float maxLinearVelo;
+    [SerializeField] private float StaticLinearVelo;
+
 
     [Header("Control")]
     [SerializeField] private float controlForce = 1000f;
+    [SerializeField] private float controlRotForce = 1000f;
     [SerializeField] public float controlXAngle = 30;
     [SerializeField] public float controlZAngle = 30;
     [SerializeField] private float controlXTime = 1;
@@ -57,9 +63,12 @@ public class HelicopterConrtoller : MonoBehaviour
     private float flyValue;
     private float flyRotValue;
     private float curFlyForce;
+    private float curStaticFlyForce;
     private bool accelerationFinish = false;
 
     // Control
+    private float curControlForce;
+    private float curControlRotForce;
     private float controlTimer;
     public float controlValue;
     public float controlRotValue;
@@ -110,7 +119,7 @@ public class HelicopterConrtoller : MonoBehaviour
     private void Awake()
     {
         actionMap = inputActions.FindActionMap("Helicopter");
-        actionMap.Enable();
+        //actionMap.Enable();
 
         flyUpAction = actionMap.FindAction("FlyUp");
         flyDownAction = actionMap.FindAction("FlyDown");
@@ -144,6 +153,7 @@ public class HelicopterConrtoller : MonoBehaviour
         curRotFly = Vector3.zero;
         curRotControl = Vector3.zero;
         curAccelerationRot = 0;
+        curYaw = 180;
 
         stateHelicopter = StateHelicopter.OFF;
 
@@ -162,14 +172,19 @@ public class HelicopterConrtoller : MonoBehaviour
             stateHelicopter = StateHelicopter.ON;
             flyValue = 1;
             if(accelerationFinish) flyTimer += Time.fixedDeltaTime;
+            rb.linearDamping = basicLinearVelo;
         }
         else if (flyDownAction.IsPressed())
         {
             flyValue = -1;
-            curFlyForce = flyDownForce;
+            rb.linearDamping = maxLinearVelo;
+            //curStaticFlyForce += flyDownForce;
+            //curFlyForce = flyDownForce;
         }
         else
         {
+            rb.linearDamping = StaticLinearVelo;
+            curStaticFlyForce = staticFlyForce;
             curFlyForce = staticFlyForce;
             flyTimer = 0;
         }
@@ -265,7 +280,15 @@ public class HelicopterConrtoller : MonoBehaviour
         if (stateHelicopter == StateHelicopter.ON)
         {
             rb.AddForce(transform.up * curFlyForce * flyValue, ForceMode.Force);
-            Debug.Log("Force : " + transform.up * curFlyForce * flyValue);
+
+            if(!flyUpAction.IsPressed())
+            {
+                rb.AddForce(transform.forward * curControlForce * controlValue * controlTimer, ForceMode.Force);
+            }
+
+            rb.AddForce(transform.right * curControlRotForce * -controlRotValue * controlRotTimer, ForceMode.Force);
+
+            //Debug.Log("Force : " + transform.right * curControlRotForce * controlRotValue * controlRotTimer);
         }
     }
 
@@ -275,11 +298,11 @@ public class HelicopterConrtoller : MonoBehaviour
         Vector3 horizontalVelocity = rb.linearVelocity;
 
         speedKmh = Mathf.Abs(horizontalVelocity.magnitude * 3.6f);
-        Debug.Log("Speed " + speedKmh);
+        //Debug.Log("Speed " + speedKmh);
 
         if (stateHelicopter == StateHelicopter.ON && accelerationFinish && groundCheck.isGrounded && flyValue == -1)
         {
-            Debug.Log("Atterissage");
+            //Debug.Log("Atterissage");
             activationTimer -= Time.fixedDeltaTime;
             activationTimer = Mathf.Clamp(activationTimer, 0f, activationTime);
             float g = flyCurve.Evaluate(activationTimer / activationTime);
@@ -295,13 +318,13 @@ public class HelicopterConrtoller : MonoBehaviour
         }
         else if (stateHelicopter == StateHelicopter.ON && accelerationFinish)
         {
-            Debug.Log("Vol");
+            //Debug.Log("Vol");
             turnLittleRotator += littleRotatorSpeed * flyValue;
             turnBigRotator += bigRotatorSpeed * flyValue;
         }
         else if (stateHelicopter == StateHelicopter.ON && !accelerationFinish)
         {
-            Debug.Log("Décollage");
+            //Debug.Log("Décollage");
             activationTimer += Time.fixedDeltaTime;
             activationTimer = Mathf.Clamp(activationTimer, 0f, activationTime);
             float f = flyCurve.Evaluate(activationTimer / activationTime);
@@ -314,14 +337,14 @@ public class HelicopterConrtoller : MonoBehaviour
         }
         else if (stateHelicopter == StateHelicopter.OFF)
         {
-            Debug.Log("OFF");
+            //Debug.Log("OFF");
             turnLittleRotator = 0;
             turnBigRotator = 0;
             activationTimer = 0;
         }
         else
         {
-            Debug.Log("ERROR");
+            Debug.Log("ERROR Helicopter");
         }
 
         if (turnLittleRotator >= maxLittleRotSpeed + 370)
@@ -343,10 +366,12 @@ public class HelicopterConrtoller : MonoBehaviour
         controlTimer = Mathf.Clamp(controlTimer, 0f, controlXTime);
         float c = controlXCurve.Evaluate(controlTimer / controlXTime);
         curControlXAngle = Mathf.Lerp(0, controlXAngle, c);
+        curControlForce = Mathf.Lerp(0, controlForce, c);
 
         controlRotTimer = Mathf.Clamp(controlRotTimer, 0f, controlZTime);
         float d = controlZCurve.Evaluate(controlRotTimer / controlZTime);
         curControlZAngle = Mathf.Lerp(0, controlZAngle, d);
+        curControlRotForce = Mathf.Lerp(0, controlRotForce, d);
 
         controlLeftTimer = Mathf.Clamp(controlLeftTimer, 0f, controlZTime);
         controlRightTimer = Mathf.Clamp(controlRightTimer, 0f, controlZTime);
@@ -379,16 +404,19 @@ public class HelicopterConrtoller : MonoBehaviour
     {
         mouseDelta = lookAction.ReadValue<Vector2>() * sensitivity;
 
-        mouseDelta.x = -mouseDelta.x;
-
         float mouseMovementY = rotationSpeed * (mouseDelta.y / Screen.height);
-        float mouseMovementX = rotationSpeed * (mouseDelta.x / Screen.height);
+        float mouseMovementX = rotationSpeed * (-mouseDelta.x / Screen.height);
 
         curPitch += mouseMovementY;
+        curYaw += mouseMovementX;
         curPitch = Mathf.Clamp(curPitch, -30, 30);
 
-        curYaw += mouseMovementX;
+        Quaternion rotation = Quaternion.Euler(curPitch, curYaw, 0);
 
-        camHolder.transform.localRotation = Quaternion.Euler(curPitch, curYaw, camHolder.transform.rotation.z);
+        Vector3 offset = rotation * new Vector3(0, 0, -15);
+
+        helicopterCamera.transform.position = camHolder.transform.position + offset;
+
+        helicopterCamera.transform.LookAt(camHolder.transform.position);
     }
 }

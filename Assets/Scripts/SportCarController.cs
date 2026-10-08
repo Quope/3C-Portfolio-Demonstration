@@ -165,12 +165,14 @@ public class SportCarController : MonoBehaviour
         // Accelerateur
         if (driveForwardAction.IsPressed())
         {
+            rb.linearDamping = 0;
             driveForwardTimer += Time.fixedDeltaTime;
             driveValue = 1;
             canBackward = false;
         }
         else
         {
+            rb.linearDamping = 0.8f;
             driveForwardTimer -= Time.fixedDeltaTime;
         }
 
@@ -222,8 +224,9 @@ public class SportCarController : MonoBehaviour
         // Frein
         if (brakeAction.IsPressed())
         {
+            rb.linearDamping = 5;
             driveForwardTimer = 0;
-            brakeTimer += Time.fixedDeltaTime;
+            brakeTimer += Time.fixedDeltaTime * 2;
         }
         else
         {

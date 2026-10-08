@@ -8,11 +8,13 @@ public class GameManagerScript : MonoBehaviour
     [SerializeField] private PlayerController playerController;
     [SerializeField] private SportCarController sportCarController;
     [SerializeField] private HelicopterConrtoller helicopterController;
+    [SerializeField] private TrainController trainController;
 
     [Header("Camera")]
     [SerializeField] private Camera player_Camera;
     [SerializeField] private Camera sportCar_Camera;
     [SerializeField] private Camera helicopter_Camera;
+    [SerializeField] private Camera train_Camera;
 
     [Header("Other")]
     [SerializeField] private InputActionAsset inputActions;
@@ -24,19 +26,21 @@ public class GameManagerScript : MonoBehaviour
 
     private void Awake()
     {
-        actionMap = inputActions.FindActionMap("Helicopter");
+        actionMap = inputActions.FindActionMap("Player");
 
         interactAction = actionMap.FindAction("Interact");
     }
     void Start()
     {
-        currentController = helicopterController;
+        currentController = playerController;
         sportCar_Camera.gameObject.SetActive(false);
-        player_Camera.gameObject.SetActive(false);
-        helicopter_Camera.gameObject.SetActive(true);
+        helicopter_Camera.gameObject.SetActive(false);
+        train_Camera.gameObject.SetActive(false);
+        trainController.actionMap.Disable();
         sportCarController.actionMap.Disable();
-        playerController.actionMap.Disable();
-        helicopterController.actionMap.Enable();
+        helicopterController.actionMap.Disable();
+        player_Camera.gameObject.SetActive(true);
+        playerController.actionMap.Enable();
         //playerController.actionMap.Enable();
         //sportCarController.actionMap.Enable();
         //helicopterController.actionMap.Disable();
@@ -71,21 +75,39 @@ public class GameManagerScript : MonoBehaviour
             playerController.gameObject.SetActive(false);
             playerController.actionMap.Disable();
             actionMap = helicopterController.actionMap;
+            helicopter_Camera.gameObject.SetActive(true);
+            helicopterController.actionMap.Enable();
             interactAction = actionMap.FindAction("Interact");
             Possess(helicopterController);
         }
-        else if (eventPossess.possessState == PossessState.SPORTCAR || eventPossess.possessState == PossessState.HELICOPTER)
+        else if (eventPossess.possessState == PossessState.PLAYER && eventPossess.canEnterIn == CanEnterIn.CANTRAIN)
         {
+            eventPossess.possessState = PossessState.TRAIN;
+            player_Camera.gameObject.SetActive(false);
+            playerController.gameObject.SetActive(false);
+            playerController.actionMap.Disable();
+            actionMap = trainController.actionMap;
+            train_Camera.gameObject.SetActive(true);
+            trainController.actionMap.Enable();
+            interactAction = actionMap.FindAction("Interact");
+            Possess(trainController);
+        }
+        else if (eventPossess.possessState == PossessState.SPORTCAR || eventPossess.possessState == PossessState.HELICOPTER || eventPossess.possessState == PossessState.TRAIN)
+        {
+            playerController.transform.position = new Vector3(currentController.transform.position.x + 5, currentController.transform.position.y + 1, currentController.transform.position.z);
             playerController.gameObject.SetActive(true);
             sportCar_Camera.gameObject.SetActive(false);
+            helicopter_Camera.gameObject.SetActive(false);
+            train_Camera.gameObject.SetActive(false);
             sportCarController.actionMap.Disable();
+            helicopterController.actionMap.Disable();
+            trainController.actionMap.Disable();
             player_Camera.gameObject.SetActive(true);
             playerController.actionMap.Enable();
             eventPossess.possessState = PossessState.PLAYER;
             actionMap = playerController.actionMap;
             interactAction = actionMap.FindAction("Interact");
             Possess(playerController);
-            playerController.transform.position = new Vector3(sportCarController.transform.position.x + 5, sportCarController.transform.position.y, sportCarController.transform.position.z);
         }
         else if (eventPossess.possessState == PossessState.PLAYER && eventPossess.canEnterIn == CanEnterIn.NONE)
         {
