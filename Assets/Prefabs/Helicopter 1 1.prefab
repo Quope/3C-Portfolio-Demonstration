@@ -136,7 +136,11 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  basicLinearVelo: 0
+  maxLinearVelo: 0
+  StaticLinearVelo: 0
   controlForce: 50
+  controlRotForce: 1000
   controlXAngle: 30
   controlZAngle: 30
   controlXTime: 10
@@ -218,7 +222,6 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  sensitivity: 10
   maxLittleRotSpeed: 300
   maxBigRotSpeed: 300
   littleRotatorSpeed: 1
@@ -232,12 +235,16 @@ MonoBehaviour:
   rb: {fileID: 1824718762079319328}
   coll: {fileID: 602126880076784581}
   helicopterCamera: {fileID: 0}
+  maxDelayTime: 2
+  sensitivity: 10
+  mouseDelta: {x: 0, y: 0, z: 0}
   controlValue: 0
   controlRotValue: 0
   curControlXAngle: 0
   curControlZAngle: 0
   xAngle: 0
   zAngle: 0
+  reactivationCam: 0
   speedKmh: 0
   actionMap:
     m_Name: Action Map
@@ -245,7 +252,16 @@ MonoBehaviour:
     m_Asset: {fileID: 0}
     m_Actions: []
     m_Bindings: []
-  mouseDelta: {x: 0, y: 0, z: 0}
+  lookAction:
+    m_Name: Look
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 4700464e-70c3-4241-a2c2-0eb618dc4b05
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+    m_Priority: 0
 --- !u!54 &1824718762079319328
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -22,6 +22,7 @@ public class TrainController : MonoBehaviour
 
     [SerializeField] public float speed = 0.5f;
     [SerializeField] private float maxSpeed = 1;
+    [SerializeField] private float distanceLookAhead = 0.01f;
 
     [SerializeField] private float failZTime = 1;
     [SerializeField] private AnimationCurve failCurve;
@@ -55,6 +56,8 @@ public class TrainController : MonoBehaviour
     private InputAction moveAction;
     private InputAction interactAction;
 
+    private float delayForce;
+
 
     private void Awake()
     {
@@ -65,64 +68,65 @@ public class TrainController : MonoBehaviour
         interactAction = actionMap.FindAction("Interact");
         rb = GetComponent<Rigidbody>();
         speed = 0;
+        delayForce = 2;
     }
     // Update is called once per frame
     void Update()
     {
+        movementAxis = moveAction.ReadValue<float>();
+
         if (!canByebye)
         {
-            movementAxis = moveAction.ReadValue<float>();
-
+            transform.rotation = Quaternion.LookRotation(tangent, up);
             positionSpline += speed * Time.deltaTime;
-
-            positionSpline = Mathf.Repeat(positionSpline, 1);
-
-            spline.Evaluate(positionSpline, out position, out tangent, out up);
-
-            wagon1.transform.position = position;
-
-
-
-            wagon1.transform.rotation = Quaternion.LookRotation(tangent, up);
-
-            float3 currentTangent = spline.EvaluateTangent(positionSpline);
-
-            float lookAhead = 0.01f;
-
-            float3 nextTangent = spline.EvaluateTangent(Mathf.Clamp01(positionSpline + lookAhead));
-
-            float angle = Vector3.Angle(currentTangent, nextTangent);
-
-            //Debug.Log("angle entre curr et next + " + angle);
-
-            float danger = angle * speed;
-
-            //Debug.Log("Danger : " + danger);
-
-            if(danger > 0.5)
-            {
-                rb.AddForce(transform.up * tangent * 1000, ForceMode.Impulse);
-                canByebye = true;
-            }
-
-            if (movementAxis == 1)
-            {
-                accelerationTimer += Time.deltaTime;
-            }
-            else if (movementAxis == -1)
-            {
-                accelerationTimer -= Time.deltaTime;
-            }
         }
         else
         {
             failTimer += Time.deltaTime;
-            failRotation.x = wagon1.transform.rotation.x;
-            wagon1.transform.rotation = Quaternion.Euler(failRotation);
+            failRotation.x = transform.rotation.x;
+            transform.rotation = Quaternion.Euler(failRotation);
+            positionSpline += delayForce * speed / 2 * Time.deltaTime;
         }
+
+        positionSpline = Mathf.Repeat(positionSpline, 1);
+
+        spline.Evaluate(positionSpline, out position, out tangent, out up);
+
+        transform.position = position;
+        
+        float3 nextTangent = spline.EvaluateTangent(Mathf.Clamp01(positionSpline + distanceLookAhead));
+
+        float angle = Vector3.Angle(spline.EvaluateTangent(positionSpline), nextTangent);
+
+        //Debug.Log("angle entre curr et next + " + angle);
+
+        float danger = angle * speed;
+
+        //Debug.Log("Danger : " + danger);
+
+        if (danger > 0.5)
+        {
+            canByebye = true;
+        }
+
+        if (movementAxis == 1)
+        {
+            accelerationTimer += Time.deltaTime;
+        }
+        else if (movementAxis == -1)
+        {
+            accelerationTimer -= Time.deltaTime;
+        }
+
     }
     private void FixedUpdate()
     {
+        if (canByebye)
+        {
+            delayForce -= Time.fixedDeltaTime;
+            delayForce = Mathf.Clamp(delayForce, 0, 3);
+        }
+
         accelerationTimer = Mathf.Clamp(accelerationTimer, 0f, accelerationTime);
         float c = accelerationCurve.Evaluate(accelerationTimer / accelerationTime);
         speed = Mathf.Lerp(0, maxSpeed, c);

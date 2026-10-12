@@ -36,7 +36,7 @@ public class EventPossess : MonoBehaviour
         {
             canEnterIn = CanEnterIn.NONE;
         }
-        Debug.Log(canEnterIn);
+        //Debug.Log(canEnterIn);
     }
 
     private void OnTriggerExit(Collider other)

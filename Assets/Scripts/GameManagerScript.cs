@@ -55,7 +55,7 @@ public class GameManagerScript : MonoBehaviour
 
     public void InteractPossession()
     {
-        Debug.Log("Interact");
+        //Debug.Log("Interact");
         if (eventPossess.possessState == PossessState.PLAYER && eventPossess.canEnterIn == CanEnterIn.CANSPORTCAR)
         {
             eventPossess.possessState = PossessState.SPORTCAR;
@@ -113,13 +113,13 @@ public class GameManagerScript : MonoBehaviour
         {
             return;
         }
-        Debug.Log("Current possess :" + eventPossess.possessState);
+        //Debug.Log("Current possess :" + eventPossess.possessState);
     }
     public void Possess(MonoBehaviour newController)
     {
         currentController.enabled = false;
         currentController = newController;
         currentController.enabled = true;
-        Debug.Log("Possess" + currentController);
+        //Debug.Log("Possess" + currentController);
     }
 }

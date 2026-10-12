@@ -471,6 +471,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  actionMap:
+    m_Name: Action Map
+    m_Id: 0d0a5a53-a72e-4aee-a700-cf21d21e3334
+    m_Asset: {fileID: 0}
+    m_Actions: []
+    m_Bindings: []
 --- !u!1 &8995468920397702043
 GameObject:
   m_ObjectHideFlags: 0

@@ -103,14 +103,11 @@ public class PlayerController : MonoBehaviour
         curJumpCount = 0;
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = true;
     }
-
-    // Update is called once per frame
     void Update()
     {
         Vector2 v = moveAction.ReadValue<Vector2>();
@@ -234,8 +231,6 @@ public class PlayerController : MonoBehaviour
         {
             // Headbob position is set in world space to keep it straight
             mainCam.transform.localPosition = new Vector3(0, headbobCurve.Evaluate(headbobTimer / headbobTime) * headbobAmp, 0);
-
-            Debug.Log(curSpeed);
 
             headbobTimer += Time.deltaTime * curSpeed / headbobFreq;
             if (headbobTimer > headbobTime)

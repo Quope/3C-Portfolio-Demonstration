@@ -34,9 +34,8 @@ public class HelicopterConrtoller : MonoBehaviour
     [SerializeField] private float minAccelerationRot = -300;
     [SerializeField] private float maxAccelerationRot = 300;
     [SerializeField] private float rotationTime = 1;
-    [SerializeField] private float rotationSpeed = 10;
+    [SerializeField] public float rotationSpeed = 10;
     [SerializeField] private AnimationCurve rotationCurve;
-    [SerializeField] private float sensitivity = 10;
     [SerializeField] private float maxLittleRotSpeed = 300;
     [SerializeField] private float maxBigRotSpeed = 300;
     [SerializeField] private float littleRotatorSpeed = 1;
@@ -52,6 +51,13 @@ public class HelicopterConrtoller : MonoBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private BoxCollider coll;
     [SerializeField] private Camera helicopterCamera;
+    [SerializeField] private float maxDelayTime = 2;
+
+    [SerializeField] private float sensitivity = 10;
+    public Vector3 mouseDelta;
+
+    private float curPitch;
+    private float curYaw;
 
     private enum StateHelicopter { ON, OFF };
     StateHelicopter stateHelicopter;
@@ -84,6 +90,7 @@ public class HelicopterConrtoller : MonoBehaviour
 
     public float xAngle;
     public float zAngle;
+    public bool reactivationCam = false;
     
 
     // Rotation
@@ -92,12 +99,11 @@ public class HelicopterConrtoller : MonoBehaviour
     private Vector3 curRotControl;
     private float curAccelerationRot;
     private bool invertYAxis = false;
-    private float curPitch;
-    private float curYaw;
     private float turnLittleRotator;
     private float turnBigRotator;
 
     public float speedKmh;
+    private float delayMouse;
 
     // Input Actions
     public InputActionMap actionMap;
@@ -110,11 +116,8 @@ public class HelicopterConrtoller : MonoBehaviour
     private InputAction controlLeftAction;
     private InputAction controlRightAction;
     private InputAction interactAction;
-    private InputAction lookAction;
-    public Vector3 mouseDelta;
+    public InputAction lookAction;
 
-
-    // Si on bouge alors le truc va suivre la cam mais si on bouge pas alors on peut tourner la cam a 360 degrés.
 
     private void Awake()
     {
@@ -153,7 +156,6 @@ public class HelicopterConrtoller : MonoBehaviour
         curRotFly = Vector3.zero;
         curRotControl = Vector3.zero;
         curAccelerationRot = 0;
-        curYaw = 180;
 
         stateHelicopter = StateHelicopter.OFF;
 
@@ -275,25 +277,42 @@ public class HelicopterConrtoller : MonoBehaviour
         backRotor.transform.Rotate(-turnLittleRotator * Time.deltaTime * 2, 0, 0);
         topRotor.transform.Rotate(0, turnBigRotator * Time.deltaTime * 2, 0);
 
+        mouseDelta = lookAction.ReadValue<Vector2>() * sensitivity;
         MouseLogic();
+
+        //if (!reactivationCam && mouseDelta != Vector3.zero)
+        //{
+        //    Debug.Log("Reac false and mouse");
+        //    MouseLogic();
+        //    delayMouse = 0;
+        //}
 
         if (stateHelicopter == StateHelicopter.ON)
         {
             rb.AddForce(transform.up * curFlyForce * flyValue, ForceMode.Force);
 
-            if(!flyUpAction.IsPressed())
+            if (!flyUpAction.IsPressed() || !flyDownAction.IsPressed())
             {
                 rb.AddForce(transform.forward * curControlForce * controlValue * controlTimer, ForceMode.Force);
+                rb.AddForce(transform.right * curControlRotForce * -controlRotValue * controlRotTimer, ForceMode.Force);
             }
-
-            rb.AddForce(transform.right * curControlRotForce * -controlRotValue * controlRotTimer, ForceMode.Force);
-
             //Debug.Log("Force : " + transform.right * curControlRotForce * controlRotValue * controlRotTimer);
         }
     }
 
     private void FixedUpdate()
     {
+        //if (!reactivationCam && mouseDelta == Vector3.zero)
+        //{
+        //    Debug.Log("Wait");
+        //    delayMouse += Time.fixedDeltaTime;
+        //}
+        //if (delayMouse > maxDelayTime) { reactivationCam = true; Debug.Log("GOOOOOOOOOO"); }
+        //if (mouseDelta == Vector3.zero)
+        //{
+        //    delayMouse += Time.fixedDeltaTime;
+        //}
+
         //float speedzebi = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.forward) * 3.6f);
         Vector3 horizontalVelocity = rb.linearVelocity;
 
@@ -338,6 +357,7 @@ public class HelicopterConrtoller : MonoBehaviour
         else if (stateHelicopter == StateHelicopter.OFF)
         {
             //Debug.Log("OFF");
+            accelerationFinish = false;
             turnLittleRotator = 0;
             turnBigRotator = 0;
             activationTimer = 0;
@@ -400,10 +420,8 @@ public class HelicopterConrtoller : MonoBehaviour
         }
     }
 
-    private void MouseLogic()
+    public void MouseLogic()
     {
-        mouseDelta = lookAction.ReadValue<Vector2>() * sensitivity;
-
         float mouseMovementY = rotationSpeed * (mouseDelta.y / Screen.height);
         float mouseMovementX = rotationSpeed * (-mouseDelta.x / Screen.height);
 

@@ -138,13 +138,6 @@ public class SportCarController : MonoBehaviour
         speedKmh = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.forward) * 3.6f);
         speedKmh = Mathf.Clamp(speedKmh, 0f, 250f);
 
-        lateralSpeed = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.right));
-
-        if(lateralSpeed > 1f)
-        {
-            Debug.Log("LateralSpeed " + lateralSpeed);
-        }
-
         //Debug.Log("Speed" + speedKmh);
         //Debug.Log("driveTime" + driveForwardTimer);
 
@@ -226,7 +219,7 @@ public class SportCarController : MonoBehaviour
         {
             rb.linearDamping = 5;
             driveForwardTimer = 0;
-            brakeTimer += Time.fixedDeltaTime * 2;
+            brakeTimer += Time.fixedDeltaTime * 3;
         }
         else
         {
@@ -355,25 +348,6 @@ public class SportCarController : MonoBehaviour
         timer = Mathf.Clamp(timer, 0f, time); // valeur, minimum, maximum
         float a = curve.Evaluate(timer / time);
         return Mathf.Lerp(minValue, maxValue, a);
-    }
-
-    private void MouseLogic()
-    {
-        // Mouse look
-        Vector3 mouseDelta = lookAction.ReadValue<Vector2>() * sensitivity;
-        yRotation *= Quaternion.Euler(0, rotationSpeed * (mouseDelta.x / Screen.width), 0);
-
-        if (!invertYAxis)
-            mouseDelta.y = -mouseDelta.y;
-
-        float mouseMovement = rotationSpeed * (mouseDelta.y / Screen.height);
-
-        // Limit upper and lower orientation of the camera
-        curPitch += mouseMovement;
-        curPitch = Mathf.Clamp(curPitch, -70, 70);
-
-        // camHolder holds the mainCam
-        camHolder.localRotation = Quaternion.Euler(curPitch, 0, 0);
     }
 
     public void NaturalBrakeMotor()
