@@ -4,28 +4,64 @@ using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.InputSystem;
 
+[System.Serializable]
+public class Wheel
+{
+    public WheelCollider collider;
+    public Transform visualWheelTransform;
+
+    public bool isFront; // roues avant ?
+    public bool isSteering; // peut tourner ?
+    public bool isMotorized; 
+
+    [HideInInspector] public float rotation;
+}
+
 public class SportCarController : MonoBehaviour
 {
     [Header("General")]
     [SerializeField] private InputActionAsset inputActions;
 
-    [Header("Movement")]
-    [SerializeField] private float driveSpeed = 200;
+    [Header("Basic Movement")]
+    [SerializeField] private float maxSpeedKmh = 200;
+    [SerializeField] private float motorTorque = 200;
     [SerializeField] private float driveBackwardSpeed = 100;
     [SerializeField] private float driveTime = 1f;
     [SerializeField] private AnimationCurve drivingCurve;
     [SerializeField] private AnimationCurve drivingBackwardCurve;
+
+    [Header("Boost")]
     [SerializeField] private float boostSpeed = 400;
     [SerializeField] private float boostTime = 5;
     [SerializeField] private AnimationCurve boostingCurve;
+
+    [Header("Drift")]
     [SerializeField] private float driftSpeed = 10;
     [SerializeField] private float driftTime = 5;
     [SerializeField] private float driftInclinaison = 5;
     [SerializeField] private AnimationCurve driftingCurve;
+
+    [Header("Brake")]
     [SerializeField] private float brakeForce = 2000;
-    [SerializeField] private float motorBrakeForce = 2000;
+    [SerializeField] private float naturalMotorBrakeForce = 2000;
     [SerializeField] private float brakeTime = 1;
     [SerializeField] private AnimationCurve brakeCurve;
+
+    [Header("Gears")]
+    [SerializeField] private float timerChangeGear = 2;
+    [SerializeField] private float firstGearTorque = 200;
+    [SerializeField] private float firstGearMaxSpeed = 10;
+
+    [SerializeField] private float secondGearTorque = 500;
+    [SerializeField] private float secondGearMaxSpeed = 30;
+
+    [SerializeField] private float thirdGearTorque = 800;
+    [SerializeField] private float thirdGearMaxSpeed = 50;
+
+    [SerializeField] private float fourthGearTorque = 1100;
+    [SerializeField] private float fourthGearMaxSpeed = 80;
+
+    [SerializeField] private float fifthGearTorque = 1400;
 
     [Header("Look")]
     [SerializeField] private float rotationSpeed = 10;
@@ -35,31 +71,25 @@ public class SportCarController : MonoBehaviour
     [SerializeField] private Transform camHolder;
 
     [Header("Wheels")]
-    [SerializeField] private WheelCollider wheelFL;
-    [SerializeField] private WheelCollider wheelFR;
-    [SerializeField] private WheelCollider wheelBL;
-    [SerializeField] private WheelCollider wheelBR;
-    [SerializeField] private Transform wheelBR_TR;
-    [SerializeField] private Transform wheelBL_TR;
-    [SerializeField] private Transform wheelFR_TR;
-    [SerializeField] private Transform wheelFL_TR;
+    [SerializeField] private Wheel[] wheels;
     [SerializeField] private float wheelAngle = 30;
     [SerializeField] private float turnTime = 1f;
     [SerializeField] private AnimationCurve turningCurve;
-
+    [SerializeField] private float driftStifness = 0.3f;
+    [SerializeField] private float forwardForwardFriction = 3f;
+    [SerializeField] private float forwardBackwardFriction = 3f;
+    [SerializeField] private float sidewayForwardFriction = 4f;
+    [SerializeField] private float sidewayBackwardFriction = 2f;
 
     private enum CarState { OFF, ON, DRIVING, BOOSTING, DRIFTING }
     CarState carState;
 
-    private Camera mainCam;
+    private enum CarGear { NONE, FIRST, SECOND, THIRD, FOURTH, FIFTH, BACK }
+    CarGear carGear;
+
     private Rigidbody rb;
-    private BoxCollider coll;
 
-    private Vector3 moveVector;
-    private Quaternion yRotation;
-
-    private bool invertYAxis = false;
-    private bool canBackward = false;
+    #region Timers
 
     private float driveForwardTimer;
     private float driveBackwardTimer;
@@ -68,27 +98,24 @@ public class SportCarController : MonoBehaviour
     private float turnLeftTimer;
     private float turnRightTimer;
 
-    private float curSpeed;
-    private float curPitch;
-    public float curAngle;
-    private float curBrake;
+    #endregion
+
+    #region BackwardValues
+
+    [HideInInspector] public bool canNaturalBrakeMotor = false;
+    private bool canBackward = false;
+    private float curBackwardSpeed;
+
+    #endregion
+
+    #region Wheels
+    [HideInInspector] public float curAngle;
+    [HideInInspector] public float lateralSpeed;
     private float turnValue;
-    private float driveValue;
+    #endregion
 
-    private float curStifness;
-    private float targetStifness;
-
-    private float wRotBR;
-    private float wRotBL;
-    private float wRotFR;
-    private float wRotFL;
-
-    public float speedKmh;
-    public float lateralSpeed;
-
-    public bool canNaturalBrakeMotor = false;
-
-    public InputActionMap actionMap;
+    #region Inputs
+    [HideInInspector] public InputActionMap actionMap;
     private InputAction driveForwardAction;
     private InputAction driveBackwardAction;
     private InputAction brakeAction;
@@ -98,6 +125,14 @@ public class SportCarController : MonoBehaviour
     private InputAction boostAction;
     private InputAction driftAction;
     private InputAction interactAction;
+    #endregion
+
+    #region other
+    private float curBrake;
+    private float curGearTimer;
+    private float driveValue;
+    public float speedKmh;
+    #endregion
 
     private void Awake()
     {
@@ -114,43 +149,62 @@ public class SportCarController : MonoBehaviour
         driftAction = actionMap.FindAction("Drift");
 
         rb = GetComponent<Rigidbody>();
-        coll = GetComponent<BoxCollider>();
-        mainCam = GetComponentInChildren<Camera>();
 
         carState = CarState.OFF;
-
-        moveVector = Vector3.zero;
-        yRotation = Quaternion.identity;
+        carGear = CarGear.NONE;
 
         driveForwardTimer = 0f;
         driveBackwardTimer = 0f;
         turnTimer = 0f;
+        //frictionSBL = wheelBL.sidewaysFriction;
+        //frictionSBR = wheelBR.sidewaysFriction;
+        curGearTimer = timerChangeGear;
+        curBackwardSpeed = 0;
     }
 
     private void Start()
     {
-        rb.centerOfMass = new Vector3(0f, -0.5f, 0f);
+        //SetWheelFriction(wheelFL, forwardForwardFriction, sidewayForwardFriction);
+        //SetWheelFriction(wheelFR, forwardForwardFriction, sidewayForwardFriction);
+        //SetWheelFriction(wheelBL, forwardBackwardFriction, sidewayBackwardFriction);
+        //SetWheelFriction(wheelBR, forwardBackwardFriction, sidewayBackwardFriction);
+        foreach (Wheel wheel in wheels)
+        {
+            if (wheel.isFront) SetWheelFriction(wheel.collider, forwardForwardFriction, sidewayForwardFriction);
+            else SetWheelFriction(wheel.collider, forwardBackwardFriction, sidewayBackwardFriction);
+        }
     }
 
     // Update is called once per frame
     private void Update()
     {
-        speedKmh = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.forward) * 3.6f);
-        speedKmh = Mathf.Clamp(speedKmh, 0f, 250f);
+        speedKmh = Mathf.Abs(rb.linearVelocity.magnitude * 3.6f);
 
-        //Debug.Log("Speed" + speedKmh);
-        //Debug.Log("driveTime" + driveForwardTimer);
+        foreach (Wheel wheel in wheels)
+        {
+            wheel.rotation += wheel.collider.rpm * 3f * Time.deltaTime;
+            wheel.visualWheelTransform.localRotation = Quaternion.Euler(wheel.rotation, wheel.isSteering ? curAngle : 0f, 0f);
+            //if(!wheel.isFront) Debug.Log("RPM roue : " + wheel.collider.rpm);
+        }
 
-        wRotBL += wheelBL.rpm * 6f;
-        wRotBR += wheelBR.rpm * 6f;
-        wRotFL += wheelFL.rpm * 6f;
-        wRotFR += wheelFR.rpm * 6f;
+        //wRotBL += wheelBL.rpm * 6f * Time.deltaTime;
+        //wRotBR += wheelBR.rpm * 6f * Time.deltaTime;
+        //wRotFL += wheelFL.rpm * 6f * Time.deltaTime;
+        //wRotFR += wheelFR.rpm * 6f * Time.deltaTime;
 
-        wheelBR_TR.localRotation = Quaternion.Euler(wRotBR, 0, 0);
-        wheelBL_TR.localRotation = Quaternion.Euler(wRotBL, 0, 0);
+        //wheelBR_TR.localRotation = Quaternion.Euler(wRotBR, 0, 0);
+        //wheelBL_TR.localRotation = Quaternion.Euler(wRotBL, 0, 0);
 
-        wheelFL_TR.localRotation = Quaternion.Euler(wRotFL, curAngle, 0);
-        wheelFR_TR.localRotation = Quaternion.Euler(wRotFR, curAngle, 0);
+        //wheelFL_TR.localRotation = Quaternion.Euler(wRotFL, curAngle, 0);
+        //wheelFR_TR.localRotation = Quaternion.Euler(wRotFR, curAngle, 0);
+
+        //Debug.Log("RPM roue BL : " + wheelBL.rpm);
+        //Debug.Log("RPM roue BR : " + wheelBR.rpm);
+        Debug.Log("Couple : " + motorTorque);
+        Debug.Log("Vitesse : " + speedKmh + " kmh");
+        //LogWheelSlip(wheelBL, "BL");
+        //LogWheelSlip(wheelFL, "FL");
+        //float drift = Vector3.Dot(rb.linearVelocity, transform.right);
     }
 
     private void FixedUpdate()
@@ -158,66 +212,68 @@ public class SportCarController : MonoBehaviour
         // Accelerateur
         if (driveForwardAction.IsPressed())
         {
-            rb.linearDamping = 0;
             driveForwardTimer += Time.fixedDeltaTime;
             driveValue = 1;
             canBackward = false;
         }
         else
         {
-            rb.linearDamping = 0.8f;
             driveForwardTimer -= Time.fixedDeltaTime;
         }
 
-        if (driftAction.IsPressed())
+        /*if (driftAction.IsPressed())
         {
-            WheelFrictionCurve frictionBL = wheelBL.forwardFriction;
-            curStifness = Mathf.Lerp(curStifness, targetStifness, Time.fixedDeltaTime * 5f);
-            frictionBL.stiffness = curStifness;
-            wheelBL.forwardFriction = frictionBL;
+            WheelFrictionCurve rearBL = wheelBL.sidewaysFriction;
+            rearBL.stiffness = 0.3f;
+            wheelBL.sidewaysFriction = rearBL;
 
-            WheelFrictionCurve frictionBR = wheelBR.forwardFriction;
-            curStifness = Mathf.Lerp(curStifness, targetStifness, Time.fixedDeltaTime * 5f);
-            frictionBR.stiffness = curStifness;
-            wheelBR.forwardFriction = frictionBR;
-
-            /////////////////////////////////////////////////////////
-
-            WheelFrictionCurve frictionSBL = wheelBL.sidewaysFriction;
-            curStifness = Mathf.Lerp(curStifness, targetStifness, Time.fixedDeltaTime * 5f);
-            frictionSBL.stiffness = curStifness;
-            wheelBL.sidewaysFriction = frictionSBL;
-
-            WheelFrictionCurve frictionSBR = wheelBR.sidewaysFriction;
-            curStifness = Mathf.Lerp(curStifness, targetStifness, Time.fixedDeltaTime * 5f);
-            frictionSBR.stiffness = curStifness;
-            wheelBR.sidewaysFriction = frictionSBR;
+            WheelFrictionCurve rearBR = wheelBR.sidewaysFriction;
+            rearBR.stiffness = 0.3f;
+            wheelBR.sidewaysFriction = rearBR;
         }
         else
         {
-            WheelFrictionCurve frictionBL = wheelBL.forwardFriction;
-            frictionBL.stiffness = 1.5f;
-            wheelBL.forwardFriction = frictionBL;
+            WheelFrictionCurve rearBL = wheelBL.sidewaysFriction;
+            rearBL.stiffness = 3f;
+            wheelBL.sidewaysFriction = rearBL;
 
-            WheelFrictionCurve frictionBR = wheelBR.forwardFriction;
-            frictionBR.stiffness = 1.5f;
-            wheelBR.forwardFriction = frictionBR;
+            WheelFrictionCurve rearBR = wheelBR.sidewaysFriction;
+            rearBR.stiffness = 3f;
+            wheelBR.sidewaysFriction = rearBR;
+        }*/
 
-            /////////////////////////////////////////////////////////
-
-            WheelFrictionCurve frictionSBL = wheelBL.sidewaysFriction;
-            frictionBL.stiffness = 2;
-            wheelBL.sidewaysFriction = frictionBL;
-
-            WheelFrictionCurve frictionSBR = wheelBR.sidewaysFriction;
-            frictionBR.stiffness = 2;
-            wheelBR.sidewaysFriction = frictionBR;
-        }
+        /*
+        //if (driftAction.IsPressed())
+        //{
+        //    foreach (Wheel wheel in wheels)
+        //    {
+        //        if (!wheel.isFront)
+        //        {
+        //            //WheelFrictionCurve forwardFriction = wheel.collider.forwardFriction;
+        //            //forwardFriction.stiffness = 0.1f;
+        //            WheelFrictionCurve sidewayFriction = wheel.collider.sidewaysFriction;
+        //            sidewayFriction.stiffness = 0.1f;
+        //        }
+        //    }
+        //}
+        //else
+        //{
+        //    foreach (Wheel wheel in wheels)
+        //    {
+        //        if (!wheel.isFront)
+        //        {
+        //            //WheelFrictionCurve forwardFriction = wheel.collider.forwardFriction;
+        //            //forwardFriction.stiffness = 5;
+        //            WheelFrictionCurve sidewayFriction = wheel.collider.sidewaysFriction;
+        //            sidewayFriction.stiffness = 5;
+        //        }
+        //    }
+        //}
+        */
 
         // Frein
         if (brakeAction.IsPressed())
         {
-            rb.linearDamping = 5;
             driveForwardTimer = 0;
             brakeTimer += Time.fixedDeltaTime * 3;
         }
@@ -281,37 +337,112 @@ public class SportCarController : MonoBehaviour
         {
             canNaturalBrakeMotor = true;
         }
-        else if(!brakeAction.IsPressed())
+        else
         {
             canNaturalBrakeMotor = false;
         }
-
-        NaturalBrakeMotor();
-
-        driveForwardTimer = Mathf.Clamp(driveForwardTimer, 0f, driveTime); 
-        float a = drivingCurve.Evaluate(driveForwardTimer / driveTime);
-        curSpeed = Mathf.Lerp(0, driveSpeed, a);
 
         if (canBackward)
         {
             driveBackwardTimer = Mathf.Clamp(driveBackwardTimer, 0f, driveTime);
             float b = drivingBackwardCurve.Evaluate(driveBackwardTimer / driveTime);
-            curSpeed = Mathf.Lerp(0, driveBackwardSpeed, b);
+            curBackwardSpeed = Mathf.Lerp(0, driveBackwardSpeed, b);
+            carGear = CarGear.BACK;
         }
 
-        wheelBR.motorTorque = driveValue * curSpeed;
-        wheelBL.motorTorque = driveValue * curSpeed;
-        wheelFR.motorTorque = driveValue * curSpeed;
-        wheelFL.motorTorque = driveValue * curSpeed;
+        // Torque logic
+        if (speedKmh < maxSpeedKmh && !canNaturalBrakeMotor)
+        {
+            if (carGear == CarGear.NONE && driveBackwardAction.IsPressed() && speedKmh < 0.1)
+            {
+                Debug.Log("Marche Arrière");
+                carGear = CarGear.BACK;
+                canBackward = true;
+            }
+            else if (carGear == CarGear.NONE && driveForwardAction.IsPressed())
+            {
+                Debug.Log("1ere");
+                carGear = CarGear.FIRST;
+            }
+            else if (speedKmh > firstGearMaxSpeed && carGear == CarGear.FIRST)
+            {
+                Debug.Log("2eme");
+                if (!CanChangeGear()) motorTorque = 0;
+                else carGear = CarGear.SECOND;
+            }
+            else if (speedKmh > secondGearMaxSpeed && carGear == CarGear.SECOND)
+            {
+                Debug.Log("3eme");
+                if (!CanChangeGear()) motorTorque = 0;
+                else carGear = CarGear.THIRD;
+            }
+            else if (speedKmh > thirdGearMaxSpeed && carGear == CarGear.THIRD)
+            {
+                Debug.Log("4eme");
+                if (!CanChangeGear()) motorTorque = 0;
+                else carGear = CarGear.FOURTH;
+            }
+            else if (speedKmh > fourthGearMaxSpeed && carGear == CarGear.FOURTH)
+            {
+                Debug.Log("5eme");
+                if (!CanChangeGear()) motorTorque = 0;
+                else carGear = CarGear.FIFTH;
+            }
+        }
+        else
+        {
+            Debug.Log("NONE");
+            carGear = CarGear.NONE;
+        }
 
-        brakeTimer = Mathf.Clamp(brakeTimer, 0f, brakeTime); 
-        float c = brakeCurve.Evaluate(brakeTimer / brakeTime);
-        curBrake = Mathf.Lerp(0, brakeForce, c);
+        switch (carGear)
+        {
+            case CarGear.NONE:
+                {
+                    motorTorque = 0;
+                    naturalMotorBrakeForce = 100000;
+                }
+                break;
+            case CarGear.FIRST:
+                {
+                    motorTorque = firstGearTorque;
+                    naturalMotorBrakeForce = 80000;
+                }
+                break;
+            case CarGear.SECOND:
+                {
+                    motorTorque = secondGearTorque;
+                    naturalMotorBrakeForce = 60000;
+                }
+                break;
+            case CarGear.THIRD:
+                {
+                    motorTorque = thirdGearTorque;
+                    naturalMotorBrakeForce = 40000;
+                }
+                break;
+            case CarGear.FOURTH:
+                {
+                    motorTorque = fourthGearTorque;
+                    naturalMotorBrakeForce = 20000;
+                }
+                break;
+            case CarGear.FIFTH:
+                {
+                    motorTorque = fifthGearTorque;
+                    naturalMotorBrakeForce = 10000;
+                }
+                break;
+            case CarGear.BACK:
+                {
+                    motorTorque = curBackwardSpeed;
+                    naturalMotorBrakeForce = 5000;
+                }
+                break;
+        }
 
-        wheelBR.brakeTorque = curBrake;
-        wheelBL.brakeTorque = curBrake;
-        wheelFR.brakeTorque = curBrake;
-        wheelFL.brakeTorque = curBrake;
+        // Brake
+        curBrake = CurvePattern(brakeTimer, brakeTime, 0, brakeForce, brakeCurve);
 
         turnTimer = Mathf.Clamp(turnTimer, 0f, turnTime);
         float d = turningCurve.Evaluate(turnTimer / turnTime);
@@ -325,24 +456,24 @@ public class SportCarController : MonoBehaviour
             curAngle = Mathf.Lerp(0, wheelAngle, d);
         }
 
-        wheelFL.steerAngle = curAngle;
-        wheelFR.steerAngle = curAngle;
-
-        if(speedKmh < 1)
+        foreach (Wheel wheel in wheels)
         {
-            if (driveBackwardAction.IsPressed())
+            if (wheel.isMotorized)
             {
-                canBackward = true;
+                if (canBackward)
+                {
+                    wheel.collider.motorTorque = CurvePattern(driveBackwardSpeed, driveTime, 0, motorTorque, drivingCurve) * driveValue;
+                }
+                else
+                {
+                    wheel.collider.motorTorque = CurvePattern(driveForwardTimer, driveTime, 0, motorTorque, drivingCurve) * driveValue;
+                }
+                wheel.collider.brakeTorque = curBrake;
             }
-            driveForwardTimer = 0;
-            curSpeed = 0;
-            wRotBL = 0;
-            wRotBR = 0;
-            wRotFL = 0;
-            wRotFR = 0;
+            if (wheel.isSteering) wheel.collider.steerAngle = curAngle;
         }
     }
-
+    
     private float CurvePattern(float timer, float time, float minValue, float maxValue, AnimationCurve curve)
     {
         timer = Mathf.Clamp(timer, 0f, time); // valeur, minimum, maximum
@@ -354,28 +485,38 @@ public class SportCarController : MonoBehaviour
     {
         if (canNaturalBrakeMotor)
         {
-            rb.linearDamping = 2;
-            wheelFR.brakeTorque = motorBrakeForce;
-            wheelFL.brakeTorque = motorBrakeForce;
-            wheelBR.brakeTorque = motorBrakeForce;
-            wheelBL.brakeTorque = motorBrakeForce;
-            driveForwardTimer -= Time.fixedDeltaTime;
-            driveBackwardTimer -= Time.fixedDeltaTime;
-        }
-        else
-        {
-            rb.linearDamping = 0.8f;
-            wheelFR.brakeTorque = 0;
-            wheelFL.brakeTorque = 0;
-            wheelBR.brakeTorque = 0;
-            wheelBL.brakeTorque = 0;
-            if (speedKmh < 1)
+            motorTorque = 0;
+            foreach (Wheel wheel in wheels)
             {
-                wheelBR.motorTorque = 0;
-                wheelBL.motorTorque = 0;
-                wheelFR.motorTorque = 0;
-                wheelFL.motorTorque = 0;
+                wheel.collider.brakeTorque = naturalMotorBrakeForce;
             }
         }
+    }
+
+    private bool CanChangeGear()
+    {
+        curGearTimer -= Time.fixedDeltaTime;
+        if (curGearTimer <= 0f)
+        {
+            curGearTimer = timerChangeGear;
+            return true;
+        }
+        return false;
+    }
+
+    // test correctif 
+
+    private void SetWheelFriction(
+    WheelCollider wheel,
+    float forwardStiffness,
+    float sidewaysStiffness)
+    {
+        WheelFrictionCurve forward = wheel.forwardFriction;
+        forward.stiffness = forwardStiffness;
+        wheel.forwardFriction = forward;
+
+        WheelFrictionCurve sideways = wheel.sidewaysFriction;
+        sideways.stiffness = sidewaysStiffness;
+        wheel.sidewaysFriction = sideways;
     }
 }

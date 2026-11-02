@@ -22,6 +22,7 @@ public class HelicopterConrtoller : MonoBehaviour
     [Header("Control")]
     [SerializeField] private float controlForce = 1000f;
     [SerializeField] private float controlRotForce = 1000f;
+    [SerializeField] private float staticControlForce = 600f;
     [SerializeField] public float controlXAngle = 30;
     [SerializeField] public float controlZAngle = 30;
     [SerializeField] private float controlXTime = 1;
@@ -64,6 +65,8 @@ public class HelicopterConrtoller : MonoBehaviour
 
     private float activationTimer;
 
+    public Quaternion rotationMouse;
+
     // Fly
     private float flyTimer;
     private float flyValue;
@@ -91,6 +94,7 @@ public class HelicopterConrtoller : MonoBehaviour
     public float xAngle;
     public float zAngle;
     public bool reactivationCam = false;
+    private bool feur = false;
     
 
     // Rotation
@@ -164,7 +168,7 @@ public class HelicopterConrtoller : MonoBehaviour
 
     void Update()
     {
-        if(speedKmh <= 1)
+        if (speedKmh <= 1)
         {
             speedKmh = 0;
         }
@@ -180,8 +184,6 @@ public class HelicopterConrtoller : MonoBehaviour
         {
             flyValue = -1;
             rb.linearDamping = maxLinearVelo;
-            //curStaticFlyForce += flyDownForce;
-            //curFlyForce = flyDownForce;
         }
         else
         {
@@ -278,6 +280,13 @@ public class HelicopterConrtoller : MonoBehaviour
         topRotor.transform.Rotate(0, turnBigRotator * Time.deltaTime * 2, 0);
 
         mouseDelta = lookAction.ReadValue<Vector2>() * sensitivity;
+        if(mouseDelta != Vector3.zero)
+        {
+            delayMouse = maxDelayTime;
+            reactivationCam = false;
+        }
+
+        //Debug.Log("MouseDelta : " + mouseDelta);
         MouseLogic();
 
         //if (!reactivationCam && mouseDelta != Vector3.zero)
@@ -286,34 +295,39 @@ public class HelicopterConrtoller : MonoBehaviour
         //    MouseLogic();
         //    delayMouse = 0;
         //}
+        if (!flyUpAction.IsPressed() && !flyDownAction.IsPressed() && (controlForwardAction.IsPressed() || controlBackwardAction.IsPressed() || controlLeftAction.IsPressed() || controlRightAction.IsPressed())) feur = true;
+        else feur = false;
 
-        if (stateHelicopter == StateHelicopter.ON)
-        {
-            rb.AddForce(transform.up * curFlyForce * flyValue, ForceMode.Force);
-
-            if (!flyUpAction.IsPressed() || !flyDownAction.IsPressed())
-            {
-                rb.AddForce(transform.forward * curControlForce * controlValue * controlTimer, ForceMode.Force);
-                rb.AddForce(transform.right * curControlRotForce * -controlRotValue * controlRotTimer, ForceMode.Force);
-            }
-            //Debug.Log("Force : " + transform.right * curControlRotForce * controlRotValue * controlRotTimer);
-        }
     }
 
     private void FixedUpdate()
     {
-        //if (!reactivationCam && mouseDelta == Vector3.zero)
-        //{
-        //    Debug.Log("Wait");
-        //    delayMouse += Time.fixedDeltaTime;
-        //}
-        //if (delayMouse > maxDelayTime) { reactivationCam = true; Debug.Log("GOOOOOOOOOO"); }
-        //if (mouseDelta == Vector3.zero)
-        //{
-        //    delayMouse += Time.fixedDeltaTime;
-        //}
+        if (stateHelicopter == StateHelicopter.ON)
+        {
+            if (feur)
+            {
+                rb.linearDamping = StaticLinearVelo;
+                rb.AddForce(transform.up * staticControlForce * flyValue, ForceMode.Force);
+                rb.AddForce(transform.forward * curControlForce * controlValue * controlTimer, ForceMode.Force);
+                rb.AddForce(transform.right * curControlRotForce * -controlRotValue * controlRotTimer, ForceMode.Force);
+            }
+            else
+            {
+                rb.AddForce(transform.up * curFlyForce * flyValue, ForceMode.Force);
+            }
+        }
 
-        //float speedzebi = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.forward) * 3.6f);
+        if (!reactivationCam && delayMouse > -0.1)
+        {
+            delayMouse -= Time.fixedDeltaTime;
+        }
+
+        if(delayMouse <= 0)
+        {
+            delayMouse = 0;
+            reactivationCam = true;
+        }
+
         Vector3 horizontalVelocity = rb.linearVelocity;
 
         speedKmh = Mathf.Abs(horizontalVelocity.magnitude * 3.6f);
@@ -376,9 +390,6 @@ public class HelicopterConrtoller : MonoBehaviour
             turnBigRotator = maxBigRotSpeed + 10;
         }
 
-        //Debug.Log("Little : " + turnLittleRotator);
-        //Debug.Log("Big : " + turnBigRotator);
-
         flyTimer = Mathf.Clamp(flyTimer, 0f, flyTime);
         float a = flyCurve.Evaluate(flyTimer / flyTime);
         curFlyForce = Mathf.Lerp(0, flyForce, a);
@@ -416,7 +427,7 @@ public class HelicopterConrtoller : MonoBehaviour
 
             Quaternion targetRot = Quaternion.Euler(xAngle, transform.eulerAngles.y + curAccelerationRot, zAngle);
 
-            transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.fixedDeltaTime * rotationSpeed);
+            rb.MoveRotation(Quaternion.Lerp(transform.rotation, targetRot, Time.fixedDeltaTime * rotationSpeed));
         }
     }
 
@@ -429,12 +440,18 @@ public class HelicopterConrtoller : MonoBehaviour
         curYaw += mouseMovementX;
         curPitch = Mathf.Clamp(curPitch, -30, 30);
 
-        Quaternion rotation = Quaternion.Euler(curPitch, curYaw, 0);
+        rotationMouse = Quaternion.Euler(curPitch, curYaw, 0);
 
-        Vector3 offset = rotation * new Vector3(0, 0, -15);
+        //camHolder.transform.LookAt(transform.position);
 
-        helicopterCamera.transform.position = camHolder.transform.position + offset;
-
-        helicopterCamera.transform.LookAt(camHolder.transform.position);
+        //if (reactivationCam)
+        //{
+        //    helicopterCamera.transform.LookAt(transform.position);
+        //}
+        //else
+        //{
+        //    helicopterCamera.transform.position = camHolder.transform.position + offset;
+        //    camHolder.transform.LookAt(transform.position);
+        //}
     }
 }

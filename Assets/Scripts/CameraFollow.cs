@@ -34,25 +34,27 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float maxCamFOV = 110;
 
     private float lerpRotY = 0;
+    private Vector3 direction;
 
     [SerializeField] private Camera cam;
+    [SerializeField] private GameObject camHolder;
 
     private void Start()
     {
         cam = GetComponent<Camera>();
     }
-    // pour faire vraiment tourner la cam faut faire tourner de gauche a droite de facon orbitale le cam Holder avec la souris mais seulement la rotation qu'il faut.
-    private void FixedUpdate()
+
+    private void LateUpdate()
     {
         if (eventPossess.possessState == PossessState.HELICOPTER)
         {
-            //FollowTargetHelicopter();
-            cam.fieldOfView = Mathf.Clamp(helicopterController.speedKmh + baseCamFOV * Time.fixedDeltaTime, baseCamFOV, maxCamFOV);
+            FollowTargetHelicopter();
+            //cam.fieldOfView = Mathf.Clamp(helicopterController.speedKmh + baseCamFOV * Time.fixedDeltaTime, baseCamFOV, maxCamFOV);
         }
         else if (eventPossess.possessState == PossessState.SPORTCAR)
         {
-            FollowTargetCar();
-            cam.fieldOfView = Mathf.Clamp(sportCarController.speedKmh + baseCamFOV, baseCamFOV, maxCamFOV);
+            //FollowTargetCar();
+            //cam.fieldOfView = Mathf.Clamp(sportCarController.speedKmh + baseCamFOV, baseCamFOV, maxCamFOV);
         }
     }
 
@@ -81,61 +83,35 @@ public class CameraFollow : MonoBehaviour
 
         Vector3 targetPos = new Vector3();
 
-        //mouseDelta = helicopterController.lookAction.ReadValue<Vector2>() * sensitivity;
-        //Debug.Log(curPitch);
+        moveOffset.z = Mathf.Clamp(basicMoveOffsetZ + transform.position.z, basicMoveOffsetZ, maxMoveOffsetZ);
+        moveOffset.y = Mathf.Clamp(basicMoveOffsetY + transform.position.y, basicMoveOffsetY, maxMoveOffsetY);
+        moveOffset.x = Mathf.Clamp(basicMoveOffsetX + transform.position.x, basicMoveOffsetX, maxMoveOffsetX);
 
-        //float mouseMovementY = helicopterController.rotationSpeed * (mouseDelta.y / Screen.height);
-        //float mouseMovementX = helicopterController.rotationSpeed * (-mouseDelta.x / Screen.height);
-
-        //curPitch += mouseMovementY;
-        //curYaw += mouseMovementX;
-        //curPitch = Mathf.Clamp(curPitch, -30, 30);
-
-        moveOffset.z = Mathf.Clamp(basicMoveOffsetZ + moveOffset.z, basicMoveOffsetZ, maxMoveOffsetZ);
-        moveOffset.y = transform.position.y;
-        moveOffset.x = transform.position.x;
-        //moveOffset.y = Mathf.Clamp(basicMoveOffsetY + moveOffset.y, basicMoveOffsetY, maxMoveOffsetY);
-        //moveOffset.x = Mathf.Clamp(helicopterController.transform.position.x + basicMoveOffsetX, basicMoveOffsetX, maxMoveOffsetX);
         targetPos = target.TransformPoint(moveOffset);
-        transform.position = Vector3.Lerp(transform.position, targetPos, moveSmoothness * Time.deltaTime);
-
-        Vector3 direction = target.position - transform.position;
-        Quaternion targetRot = new Quaternion();
         
-        targetRot = Quaternion.LookRotation(direction + rotOffset, Vector3.up);
-        transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, rotSmoothness * Time.deltaTime);
 
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        Quaternion targetRot = new Quaternion();
+        direction = target.position - transform.position;
 
-        //Quaternion targetRot = Quaternion.Euler(xAngle, transform.eulerAngles.y + curAccelerationRot, zAngle);
+        Vector3 offset = helicopterController.rotationMouse * new Vector3(helicopterController.transform.rotation.x, helicopterController.transform.rotation.y, -15);
 
-        //transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.fixedDeltaTime * rotationSpeed);
-
-
-
-        //Vector3 targetPos = new Vector3();
-        //moveOffset.y = Mathf.Clamp((-helicopterController.speedKmh + moveOffset.y), basicMoveOffsetY, maxMoveOffsetY);
-        //moveOffset.z = Mathf.Clamp((-helicopterController.speedKmh + moveOffset.z), basicMoveOffsetZ, maxMoveOffsetZ);
-        //targetPos = target.TransformPoint(moveOffset.x, moveOffset.y, moveOffset.z);
-        //transform.localPosition = Vector3.Lerp(transform.localPosition, targetPos, moveSmoothness * Time.deltaTime);
-
-        //Quaternion targetRot = Quaternion.identity;
-        //targetRot = Quaternion.Euler(15, helicopterController.transform.rotation.y, helicopterController.transform.rotation.z);
-        //transform.localRotation = Quaternion.Lerp(transform.localRotation, targetRot, rotSmoothness * Time.deltaTime);
+        if (helicopterController.reactivationCam)
+        {
+            Debug.Log("Activer");
+            targetRot = Quaternion.LookRotation(direction + rotOffset, Vector3.up);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, rotSmoothness * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, targetPos, moveSmoothness * Time.deltaTime);
+        }
+        else
+        {
+            Debug.Log("Desactiver");
+            targetRot = Quaternion.LookRotation(direction, Vector3.up);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, rotSmoothness * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, camHolder.transform.position + offset, moveSmoothness * Time.deltaTime);
+        }
     }
-
-    //private void MouseLogic()
-    //{
-
-
-    //    Quaternion rotation = Quaternion.Euler(curPitch, curYaw, 0);
-
-    //    Vector3 offset = rotation * new Vector3(0, 0, -15);
-
-    //    helicopterCamera.transform.position = camHolder.transform.position + offset;
-
-    //    helicopterCamera.transform.LookAt(camHolder.transform.position);
-    //}
 
     private void FollowTargetTrain()
     {

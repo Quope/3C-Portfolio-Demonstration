@@ -9,6 +9,7 @@ public class JumpDetectorDetection : MonoBehaviour
     {
         detection = false;
     }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Ground"))

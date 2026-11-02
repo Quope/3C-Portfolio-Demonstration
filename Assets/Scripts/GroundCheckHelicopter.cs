@@ -3,19 +3,11 @@ using UnityEngine;
 public class GroundCheckHelicopter : MonoBehaviour
 {
 
-    public bool isGrounded = false;
+    public bool isGrounded;
 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Awake()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        isGrounded = false;
     }
 
     private void OnTriggerEnter(Collider other)
