@@ -12,6 +12,7 @@ public class NonPossessSportCar : MonoBehaviour
         {
             sportCarController.canNaturalBrakeMotor = true;
             sportCarController.NaturalBrakeMotor();
+            sportCarController.OffCar();
         }
     }
 }

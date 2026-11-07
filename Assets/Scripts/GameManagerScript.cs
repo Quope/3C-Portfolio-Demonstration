@@ -58,6 +58,7 @@ public class GameManagerScript : MonoBehaviour
         splineFollowCam.enabled = false;
         groundCheckHelicopter.enabled = false;
         jumpDetector.enabled = true;
+        helicopterController.lampSwitch.SetLights(false);
 
         player_Camera.gameObject.SetActive(true);
         playerController.actionMap.Enable();
@@ -123,6 +124,7 @@ public class GameManagerScript : MonoBehaviour
             helicopter_Camera.gameObject.SetActive(true);
             helicopterController.actionMap.Enable();
             interactAction = actionMap.FindAction("Interact");
+            helicopterController.lampSwitch.SetLights(true);
             Possess(helicopterController);
         }
         else if (eventPossess.possessState == PossessState.PLAYER && eventPossess.canEnterIn == CanEnterIn.CANTRAIN)
@@ -166,6 +168,7 @@ public class GameManagerScript : MonoBehaviour
             playerController.gameObject.SetActive(true);
             sportCar_Camera.gameObject.SetActive(false);
             helicopter_Camera.gameObject.SetActive(false);
+            helicopterController.lampSwitch.SetLights(false);
             train_Camera.gameObject.SetActive(false);
             sportCarController.actionMap.Disable();
             helicopterController.actionMap.Disable();

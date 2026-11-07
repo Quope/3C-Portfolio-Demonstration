@@ -53,6 +53,7 @@ public class HelicopterConrtoller : MonoBehaviour
     [SerializeField] private BoxCollider coll;
     [SerializeField] private Camera helicopterCamera;
     [SerializeField] private float maxDelayTime = 2;
+    [SerializeField] public LampSwitch lampSwitch;
 
     [SerializeField] private float sensitivity = 10;
     public Vector3 mouseDelta;
@@ -168,6 +169,12 @@ public class HelicopterConrtoller : MonoBehaviour
 
     void Update()
     {
+        speedKmh = Mathf.Abs(rb.linearVelocity.magnitude * 3.6f);
+        //Debug.Log("Speed " + speedKmh);
+
+
+        lampSwitch.UpdateBackLights();
+
         if (speedKmh <= 1)
         {
             speedKmh = 0;
@@ -327,11 +334,6 @@ public class HelicopterConrtoller : MonoBehaviour
             delayMouse = 0;
             reactivationCam = true;
         }
-
-        Vector3 horizontalVelocity = rb.linearVelocity;
-
-        speedKmh = Mathf.Abs(horizontalVelocity.magnitude * 3.6f);
-        //Debug.Log("Speed " + speedKmh);
 
         if (stateHelicopter == StateHelicopter.ON && accelerationFinish && groundCheck.isGrounded && flyValue == -1)
         {
