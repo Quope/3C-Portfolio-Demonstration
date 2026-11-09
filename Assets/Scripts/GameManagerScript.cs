@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using static EventPossess;
 
 public class GameManagerScript : MonoBehaviour
@@ -20,8 +22,6 @@ public class GameManagerScript : MonoBehaviour
     [SerializeField] private InputActionAsset inputActions;
     [SerializeField] public EventPossess eventPossess;
     [SerializeField] private NonPossessSportCar nonPossessSportCar;
-    [SerializeField] private CameraFollow HelicoCamFollow;
-    [SerializeField] private CameraFollow SportCarCamFollow;
     [SerializeField] private SplineFollowCam splineFollowCam;
     [SerializeField] private GroundCheckHelicopter groundCheckHelicopter;
     [SerializeField] private JumpDetectorDetection jumpDetector;
@@ -53,8 +53,6 @@ public class GameManagerScript : MonoBehaviour
         playerController.enabled = true;
 
         nonPossessSportCar.enabled = false;
-        HelicoCamFollow.enabled = false;
-        SportCarCamFollow.enabled = false;
         splineFollowCam.enabled = false;
         groundCheckHelicopter.enabled = false;
         jumpDetector.enabled = true;
@@ -74,7 +72,7 @@ public class GameManagerScript : MonoBehaviour
             InteractPossession();
     }
 
-    [Button]public void InteractPossession()
+    public void InteractPossession()
     {
         //Debug.Log("Interact");
  
@@ -90,8 +88,6 @@ public class GameManagerScript : MonoBehaviour
             playerController.enabled = false;
 
             nonPossessSportCar.enabled = false;
-            HelicoCamFollow.enabled = false;
-            SportCarCamFollow.enabled = true;
             splineFollowCam.enabled = false;
             groundCheckHelicopter.enabled = false;
             jumpDetector.enabled = false;
@@ -114,8 +110,6 @@ public class GameManagerScript : MonoBehaviour
             playerController.enabled = false;
 
             nonPossessSportCar.enabled = true;
-            HelicoCamFollow.enabled = true;
-            SportCarCamFollow.enabled = false;
             splineFollowCam.enabled = false;
             groundCheckHelicopter.enabled = true;
             jumpDetector.enabled = false;
@@ -139,8 +133,6 @@ public class GameManagerScript : MonoBehaviour
             playerController.enabled = false;
 
             nonPossessSportCar.enabled = true;
-            HelicoCamFollow.enabled = false;
-            SportCarCamFollow.enabled = false;
             splineFollowCam.enabled = true;
             groundCheckHelicopter.enabled = false;
             jumpDetector.enabled = false;
@@ -158,14 +150,14 @@ public class GameManagerScript : MonoBehaviour
             playerController.enabled = true;
 
             nonPossessSportCar.enabled = true;
-            HelicoCamFollow.enabled = false;
-            SportCarCamFollow.enabled = false;
             splineFollowCam.enabled = false;
             groundCheckHelicopter.enabled = false;
             jumpDetector.enabled = true;
 
             playerController.transform.position = new Vector3(currentController.transform.position.x + 5, currentController.transform.position.y + 1, currentController.transform.position.z);
             playerController.gameObject.SetActive(true);
+            sportCarController.chromaticAberration.intensity.value = sportCarController.camFollow.basicChromaticAberrationIntensity;
+            sportCarController.vignette.intensity.value = sportCarController.camFollow.basicVignetteIntensity;
             sportCar_Camera.gameObject.SetActive(false);
             helicopter_Camera.gameObject.SetActive(false);
             helicopterController.lampSwitch.SetLights(false);

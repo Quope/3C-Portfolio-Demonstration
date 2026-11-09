@@ -3,6 +3,8 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 [System.Serializable]
 public class Wheel
@@ -55,8 +57,9 @@ public class SportCarController : MonoBehaviour
     [SerializeField] private float rotationSpeed = 10;
     [SerializeField] private float sensitivity = 100;
 
-    [Header("Camera parameters")]
-    [SerializeField] private Transform camHolder;
+    [Header("Camera")]
+    [SerializeField] public CameraFollowCar camFollow;
+    [SerializeField] private Volume globalVolume;
 
     [Header("Wheels")]
     [SerializeField] private Wheel[] wheels;
@@ -93,7 +96,9 @@ public class SportCarController : MonoBehaviour
     #endregion
 
     private Rigidbody rb;
-    private bool activate;
+    [HideInInspector] public Vignette vignette;
+    [HideInInspector] public ChromaticAberration chromaticAberration;
+
 
     #region Timers
 
@@ -102,6 +107,13 @@ public class SportCarController : MonoBehaviour
     private float turnTimer;
     private float turnLeftTimer;
     private float turnRightTimer;
+
+    #endregion
+
+    #region SpeedValues
+
+    public float speedKmh;
+    public float speedFactor;
 
     #endregion
 
@@ -118,6 +130,7 @@ public class SportCarController : MonoBehaviour
     [HideInInspector] public int currentGear = 0;
     private float shiftTimer;
     private float turnValue;
+    private bool activateDrift;
 
     #endregion
 
@@ -136,15 +149,11 @@ public class SportCarController : MonoBehaviour
 
     #endregion
 
-    #region SpeedValues
-
-    public float speedKmh;
-    public float speedFactor;
-
-    #endregion
-
     private void Awake()
     {
+        globalVolume.profile.TryGet(out vignette);
+        globalVolume.profile.TryGet(out chromaticAberration);
+
         actionMap = inputActions.FindActionMap("SportCar");
 
         driveForwardAction = actionMap.FindAction("DriveForward");
@@ -171,7 +180,7 @@ public class SportCarController : MonoBehaviour
         lightRFront.intensity = 0f;
         spotL.intensity = 0f;
         spotR.intensity = 0f;
-        activate = false;
+        activateDrift = false;
     }
 
     private void Start()
@@ -188,36 +197,41 @@ public class SportCarController : MonoBehaviour
         speedKmh = Mathf.Abs(rb.linearVelocity.magnitude * 3.6f);
         Debug.Log("Vitesse : " + speedKmh + " kmh");
 
-        if(!activate)
-        {
-            smoke_L.Play(); smoke_R.Play();
-            activate = true;
-        }
-
-        float lateralSpeed = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.right));
-        if (lateralSpeed > driftEffectConditionValue) { driftSteam_L.Play(); driftSteam_R.Play(); }
-
+        DriftActivation();
         ApplicationVisualMovementWheels();
-        MotorVisualEffect();
+        //MotorVisualEffect();
     }
 
     private void FixedUpdate()
     {
         BrakeControl();
-
         TurnControl();
-
         UpdateGear();
         UpdateLights();
-
         ForceWheelsApplication();
     }
-
-    private void MotorVisualEffect()
+    private void LateUpdate()
     {
-        motorBalanceTimer += Time.deltaTime;
-        if (motorBalanceTimer >= motorBalanceTime * 2) { principalMesh.localRotation = Quaternion.Euler(0, 0, -motorBalance); motorBalanceTimer = 0; }
-        else if (motorBalanceTimer >= motorBalanceTime) {  principalMesh.localRotation = Quaternion.Euler(0, 0, motorBalance); }
+        camFollow.UpdateCarCamera();
+    }
+
+    //private void MotorVisualEffect()
+    //{
+    //    motorBalanceTimer += Time.deltaTime;
+    //    if (motorBalanceTimer >= motorBalanceTime * 2) { principalMesh.localRotation = Quaternion.Euler(0, 0, -motorBalance); motorBalanceTimer = 0; }
+    //    else if (motorBalanceTimer >= motorBalanceTime) {  principalMesh.localRotation = Quaternion.Euler(0, 0, motorBalance); }
+    //}
+
+    private void DriftActivation()
+    {
+        if (!activateDrift)
+        {
+            smoke_L.Play(); smoke_R.Play();
+            activateDrift = true;
+        }
+
+        float lateralSpeed = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.right));
+        if (lateralSpeed > driftEffectConditionValue) { driftSteam_L.Play(); driftSteam_R.Play(); }
     }
 
     private void ApplicationVisualMovementWheels()
@@ -404,6 +418,6 @@ public class SportCarController : MonoBehaviour
         lightRFront.intensity = 0f;
         spotL.intensity = 0f;
         spotR.intensity = 0f;
-        activate = false;
+        activateDrift = false;
     }
 }

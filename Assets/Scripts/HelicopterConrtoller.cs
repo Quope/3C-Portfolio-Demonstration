@@ -8,6 +8,9 @@ public class HelicopterConrtoller : MonoBehaviour
 {
     [SerializeField] private InputActionAsset inputActions;
 
+    [Header("Camera")]
+    [SerializeField] private CameraFollowHelicopter cameraFollow;
+
     [Header("Fly")]
     [SerializeField] private float flyForce = 1000f;
     [SerializeField] private float flyDownForce = 200f;
@@ -17,7 +20,6 @@ public class HelicopterConrtoller : MonoBehaviour
     [SerializeField] private float basicLinearVelo;
     [SerializeField] private float maxLinearVelo;
     [SerializeField] private float StaticLinearVelo;
-
 
     [Header("Control")]
     [SerializeField] private float controlForce = 1000f;
@@ -431,6 +433,11 @@ public class HelicopterConrtoller : MonoBehaviour
 
             rb.MoveRotation(Quaternion.Lerp(transform.rotation, targetRot, Time.fixedDeltaTime * rotationSpeed));
         }
+    }
+
+    private void LateUpdate()
+    {
+        cameraFollow.UpdateHelicoCamera();
     }
 
     public void MouseLogic()

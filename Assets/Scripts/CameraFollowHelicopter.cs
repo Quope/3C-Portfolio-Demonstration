@@ -2,91 +2,42 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using static EventPossess;
 
-public class CameraFollow : MonoBehaviour
+public class CameraFollowHelicopter : MonoBehaviour
 {
     [SerializeField] private float moveSmoothness = 5f;
-    [SerializeField] private float rotSmoothnessHelicoCam = 10f;
     [SerializeField] private float rotSmoothness = 5f;
 
-    [SerializeField] private Vector3 moveOffset = new Vector3(0f, 2.4f, -6f);
-    [SerializeField] private Vector3 rotOffset = new Vector3(0f, 1f, 0f);
+    [SerializeField] private Vector3 moveOffset = new Vector3(0f, 400f, -1500f);
+    [SerializeField] private Vector3 rotOffset = new Vector3(0f, 0f, 0f);
 
     [SerializeField] private Transform target;
 
-    [SerializeField] private SportCarController sportCarController;
     [SerializeField] private HelicopterConrtoller helicopterController;
-    [SerializeField] private EventPossess eventPossess;
-
-    [SerializeField] private float divide = 10;
-
-    [SerializeField] private float basicMoveOffsetZ = -6;
-    [SerializeField] private float maxMoveOffsetZ = -9;
-
-    [SerializeField] private float basicMoveOffsetY = -6;
-    [SerializeField] private float maxMoveOffsetY = -9;
-
-    [SerializeField] private float basicMoveOffsetX = 0;
-    [SerializeField] private float maxMoveOffsetX = -15;
-
-    [SerializeField] private float basicRotOffsetY = 1;
-    [SerializeField] private float maxRotOffsetY = 2;
-
-    [SerializeField] private float baseCamFOV = 60;
-    [SerializeField] private float maxCamFOV = 110;
-
-    private float lerpRotY = 0;
-    private Vector3 direction;
-    private float smoothOperator = 0;
-    private float smoothOperatorHelico = 0;
-
-
     [SerializeField] private Camera cam;
     [SerializeField] private GameObject camHolder;
+    [SerializeField] private EventPossess eventPossess;
 
-    private void Start()
-    {
-        cam = GetComponent<Camera>();
-    }
+    [SerializeField] private float basicMoveOffsetZ = -1500;
+    [SerializeField] private float maxMoveOffsetZ = -2000;
 
-    private void LateUpdate()
+    [SerializeField] private float basicMoveOffsetY = -400;
+    [SerializeField] private float maxMoveOffsetY = -500;
+
+    [SerializeField] private float basicMoveOffsetX = 5;
+    [SerializeField] private float maxMoveOffsetX = -5;
+
+    [SerializeField] private float baseCamFOV = 60;
+    [SerializeField] private float maxCamFOV = 90;
+
+    private Vector3 direction;
+    private float smoothOperatorHelico = 0;
+
+    public void UpdateHelicoCamera() // a placer dans LateUpdate
     {
-        smoothOperator = sportCarController.speedKmh / 100;
         smoothOperatorHelico = helicopterController.speedKmh / 200;
 
-        if (eventPossess.possessState == PossessState.HELICOPTER)
-        {
-            FollowTargetHelicopter();
-            cam.fieldOfView = Mathf.Lerp(baseCamFOV, maxCamFOV, smoothOperatorHelico);
-            //cam.fieldOfView = Mathf.Clamp(helicopterController.speedKmh + baseCamFOV * Time.fixedDeltaTime, baseCamFOV, maxCamFOV);
-        }
-        else if (eventPossess.possessState == PossessState.SPORTCAR)
-        {
-            FollowTargetCar();
-            // je divise par 100 pour faire en sorte que le max camfov soit atteint a 100 Kmh car si on laisse normal ca change le fov entre 0 et 1 kmh.
-            cam.fieldOfView = Mathf.Lerp(baseCamFOV, maxCamFOV, smoothOperator); 
-            //cam.fieldOfView = Mathf.Clamp(sportCarController.speedKmh + baseCamFOV, baseCamFOV, maxCamFOV);
-        }
-    }
-
-    private void FollowTargetCar()
-    {
-        // position
-        Vector3 targetPos = new Vector3();
-        moveOffset.z = Mathf.Clamp((basicMoveOffsetZ + moveOffset.z), basicMoveOffsetZ, maxMoveOffsetZ);
-        moveOffset.y = Mathf.Lerp(basicMoveOffsetY, maxMoveOffsetY, smoothOperator);
-        moveOffset.x = Mathf.Lerp(basicMoveOffsetX, maxMoveOffsetY, smoothOperator);
-        targetPos = target.TransformPoint(-sportCarController.curAngle * moveOffset.x / (divide / smoothOperator), moveOffset.y, moveOffset.z);
-
-        transform.position = Vector3.Lerp(transform.position, targetPos, moveSmoothness * Time.deltaTime);
-
-        //rotation
-        Vector3 direction = target.position - transform.position;
-        Quaternion rotation = new Quaternion();
-        lerpRotY = Mathf.Lerp(basicRotOffsetY, maxRotOffsetY, smoothOperator);
-        rotOffset.y = Mathf.Clamp(lerpRotY, basicRotOffsetY, maxRotOffsetY);
-        rotation = Quaternion.LookRotation(direction + rotOffset, Vector3.up);
-
-        transform.rotation = Quaternion.Lerp(transform.rotation, rotation, moveSmoothness * Time.deltaTime);
+        FollowTargetHelicopter();
+        cam.fieldOfView = Mathf.Lerp(baseCamFOV, maxCamFOV, smoothOperatorHelico);
     }
 
     private void FollowTargetHelicopter()

@@ -46,13 +46,6 @@ public class TrainController : MonoBehaviour
 
     private bool canByebye = false;
 
-    private Vector3 currentTangent;
-    private Vector3 nextTangent;
-    private Vector3 basicFailRotation;
-    private Vector3 failRotation;
-
-
-    private Rigidbody rb;
     // Input Actions
     public InputActionMap actionMap;
     private InputAction moveAction;
@@ -68,7 +61,6 @@ public class TrainController : MonoBehaviour
         moveAction = actionMap.FindAction("Move");
         interactAction = actionMap.FindAction("Interact");
 
-        rb = GetComponent<Rigidbody>();
         speed = 0;
         delayForce = 2;
 
@@ -83,16 +75,6 @@ public class TrainController : MonoBehaviour
 
         if (!canByebye)
         {
-            //transform.rotation = Quaternion.LookRotation(tangent, up);
-            //positionSpline += speed * Time.deltaTime;
-            //positionSpline = Mathf.Repeat(positionSpline, 1);
-
-            //wagons[0].splinePos += speed * Time.deltaTime;
-            //wagons[0].splinePos = Mathf.Repeat(wagons[0].splinePos, 1);
-
-            //wagons[0].wagonTr.rotation = Quaternion.LookRotation(tangent, up);
-            //wagons[0].wagonTr.position = position;
-
             foreach (Wagons wagon in wagons)
             {
                 wagon.splinePos += speed * Time.deltaTime;
@@ -104,26 +86,22 @@ public class TrainController : MonoBehaviour
         }
         else
         {
-            //failRotation.x = transform.rotation.x;
-            //transform.rotation = Quaternion.Euler(failRotation);
-            //positionSpline += delayForce * speed / 2 * Time.deltaTime;
             failTimer += Time.deltaTime;
+            failTimer = Mathf.Min(failTimer, Mathf.Max(failZTime, failYTime));
 
-            //failRotation.x = wagon.wagonTr.rotation.x;
-            wagons[0].splinePos += delayForce * speed / wagons[0].speedFailFactor * Time.deltaTime;
-            spline.Evaluate(wagons[0].splinePos, out position, out tangent, out up);
-            wagons[0].wagonTr.rotation = Quaternion.LookRotation(wagons[0].maxfailRotation);
-            Debug.Log(wagons[0].maxfailRotation);
-            wagons[0].wagonTr.position = position;
+            float z = failCurve.Evaluate(Mathf.Clamp01(failTimer / failZTime));
+            float y = failYCurve.Evaluate(Mathf.Clamp01(failTimer / failYTime));
 
-            //foreach (Wagons wagon in wagons)
-            //{
-            //    failRotation.x = wagon.wagonTr.rotation.x;
-            //    wagon.splinePos += delayForce * speed / wagon.speedFailFactor * Time.deltaTime;
-            //    spline.Evaluate(wagon.splinePos, out position, out tangent, out up);
-            //    wagon.wagonTr.rotation = Quaternion.LookRotation(failRotation);
-            //    wagon.wagonTr.position = position;
-            //}
+            foreach (Wagons wagon in wagons)
+            {
+                wagon.splinePos += delayForce * speed * Time.deltaTime;
+                spline.Evaluate(wagon.splinePos * wagon.speedFailFactor, out position, out tangent, out up);
+
+                Vector3 rot = new Vector3(Mathf.Lerp(0, wagon.maxfailRotation.x, z), Mathf.Lerp(0, wagon.maxfailRotation.y, y), Mathf.Lerp(0, wagon.maxfailRotation.z, z));
+
+                wagon.wagonTr.rotation = Quaternion.LookRotation(tangent, up) * Quaternion.Euler(rot);
+                wagon.wagonTr.position = position;
+            }
         }
 
         // Que pour la locomotive (permet de crash le train une fois danger atteint)
@@ -154,7 +132,6 @@ public class TrainController : MonoBehaviour
         {
             accelerationTimer -= Time.deltaTime;
         }
-
     }
     private void FixedUpdate()
     {
@@ -167,20 +144,6 @@ public class TrainController : MonoBehaviour
         accelerationTimer = Mathf.Clamp(accelerationTimer, 0f, accelerationTime);
         float c = accelerationCurve.Evaluate(accelerationTimer / accelerationTime);
         speed = Mathf.Lerp(0, maxSpeed, c);
-
-        failTimer = Mathf.Clamp(failTimer, 0f, failZTime);
-        float z = failCurve.Evaluate(failTimer / failZTime);
-        failRotation.z = Mathf.Lerp(basicFailRotation.z, wagons[0].maxfailRotation.z, z);
-
-        //failTimer = Mathf.Clamp(failTimer, 0f, failYTime);
-        //float y = failYCurve.Evaluate(failTimer / failYTime);
-        //failRotation.x = Mathf.Lerp(basicFailRotation.x, maxFailRotation.x, y);
-
-        //foreach (Wagons wagon in wagons)
-        //{
-        //    failRotation.z = Mathf.Lerp(0, wagon.maxfailRotation.z, z);
-        //    failRotation.y = Mathf.Lerp(0, wagon.maxfailRotation.y, y);
-        //}
     }
 
     /*

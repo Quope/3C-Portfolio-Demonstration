@@ -24,7 +24,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4117956524024811344}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.71298987, z: -0, w: 0.7011743}
+  m_LocalRotation: {x: 0, y: 0.71298736, z: 0, w: 0.7011769}
   m_LocalPosition: {x: -87.9, y: 1.89, z: -48.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -61,13 +61,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6007044467142157044}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.9914449, z: -0.13052616, w: 0}
-  m_LocalPosition: {x: -1.4394531, y: 4.4809093, z: 15.815063}
+  m_LocalRotation: {x: 0.03613438, y: -0.91692364, z: 0.08536042, w: 0.38814795}
+  m_LocalPosition: {x: 9.07, y: 4.13, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5238247207419590448}
-  m_LocalEulerAnglesHint: {x: 15, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 10.637, y: -134.113, z: 0}
 --- !u!20 &758526371936369745
 Camera:
   m_ObjectHideFlags: 0
@@ -150,7 +150,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -183,27 +183,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38fbadbe824778242a96a4a2255f66b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
-  moveSmoothness: 2
+  moveSmoothness: 5
   rotSmoothness: 5
   moveOffset: {x: 0, y: 400, z: -1500}
   rotOffset: {x: 0, y: 0, z: 0}
   target: {fileID: 5282733639650293546}
-  sportCarController: {fileID: 0}
   helicopterController: {fileID: 7944608172463316714}
+  cam: {fileID: 758526371936369745}
+  camHolder: {fileID: 7350902936778010744}
   eventPossess: {fileID: 0}
-  divide: 10
   basicMoveOffsetZ: -1500
   maxMoveOffsetZ: -2000
   basicMoveOffsetY: 400
   maxMoveOffsetY: 500
   basicMoveOffsetX: 5
   maxMoveOffsetX: -5
-  basicRotOffsetY: 1
-  maxRotOffsetY: 2
   baseCamFOV: 60
-  maxCamFOV: 120
-  cam: {fileID: 758526371936369745}
-  camHolder: {fileID: 7350902936778010744}
+  maxCamFOV: 90
 --- !u!1 &7481843653823220655
 GameObject:
   m_ObjectHideFlags: 0
@@ -339,6 +335,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Helicopter
       objectReference: {fileID: 0}
+    - target: {fileID: 3294738968738079967, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_Name
+      value: BackHelicoLight
+      objectReference: {fileID: 0}
     - target: {fileID: 3537490135991770256, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: m_TagString
       value: Helicopter
@@ -348,9 +348,17 @@ PrefabInstance:
       value: 13000
       objectReference: {fileID: 0}
     - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: lampSwitch
+      value: 
+      objectReference: {fileID: 526485127720238818}
+    - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: groundCheck
       value: 
       objectReference: {fileID: 8527402513306202134}
+    - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: cameraFollow
+      value: 
+      objectReference: {fileID: 5773208737799740792}
     - target: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: controlForce
       value: 6000
@@ -439,9 +447,21 @@ PrefabInstance:
       propertyPath: staticControlForce
       value: 18000
       objectReference: {fileID: 0}
+    - target: {fileID: 4343498919473030272, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_Intensity
+      value: 50
+      objectReference: {fileID: 0}
     - target: {fileID: 5333347346506676009, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       propertyPath: m_TagString
       value: Helicopter
+      objectReference: {fileID: 0}
+    - target: {fileID: 6242032236074973306, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6242032236074973306, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.55
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -449,16 +469,54 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2180900619293236162, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1050836482464926050}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2048327071849836268, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 526485127720238818}
   m_SourcePrefab: {fileID: 100100000, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+--- !u!108 &837352035085500552 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 6668363140889275488, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+  m_PrefabInstance: {fileID: 6274666360760675560}
+  m_PrefabAsset: {fileID: 0}
+--- !u!108 &5190681022451347124 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 2241973667391685212, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+  m_PrefabInstance: {fileID: 6274666360760675560}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5282733639650293546 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2180900619293236162, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
   m_PrefabInstance: {fileID: 6274666360760675560}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5438388272555835908 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2048327071849836268, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+  m_PrefabInstance: {fileID: 6274666360760675560}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &526485127720238818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5438388272555835908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9734eff3e85847c4e83765fca658b824, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LampSwitch
+  frontLight: {fileID: 5190681022451347124}
+  frontSpot: {fileID: 7733562979953674344}
+  backLight: {fileID: 837352035085500552}
 --- !u!1 &7350902936778010744 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3537490135991770256, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
+  m_PrefabInstance: {fileID: 6274666360760675560}
+  m_PrefabAsset: {fileID: 0}
+--- !u!108 &7733562979953674344 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 4343498919473030272, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
   m_PrefabInstance: {fileID: 6274666360760675560}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &7944608172463316714 stripped
@@ -466,7 +524,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4131204681821909506, guid: 578faba17a414f349a8891cd3e8f4376, type: 3}
   m_PrefabInstance: {fileID: 6274666360760675560}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 5438388272555835908}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b2a8f601a5fb0c43b74680b2bf68784, type: 3}

@@ -135,7 +135,7 @@ Light:
   serializedVersion: 12
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 0.5
   m_Range: 0.53
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -565,7 +565,7 @@ Light:
   serializedVersion: 12
   m_Type: 2
   m_Color: {r: 1, g: 0, b: 0, a: 1}
-  m_Intensity: 0.05
+  m_Intensity: 0.02
   m_Range: 0.2
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -660,7 +660,7 @@ GameObject:
   - component: {fileID: 5085302781543702379}
   - component: {fileID: 5567133531812609100}
   - component: {fileID: 6225284062275954687}
-  - component: {fileID: 8877761179591663287}
+  - component: {fileID: 4111387635689366351}
   m_Layer: 0
   m_Name: SportCar_Camera
   m_TagString: Untagged
@@ -765,7 +765,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -786,7 +786,7 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!114 &8877761179591663287
+--- !u!114 &4111387635689366351
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -795,18 +795,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 4048207841811490352}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 38fbadbe824778242a96a4a2255f66b9, type: 3}
+  m_Script: {fileID: 11500000, guid: d7d6ff35de833fe4998c93374d60befb, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: '::'
-  moveSmoothness: 6
-  rotSmoothness: 7
-  moveOffset: {x: 0, y: 2.4, z: -6}
+  m_EditorClassIdentifier: Assembly-CSharp::CameraFollowCar
+  moveSmoothness: 5
+  rotSmoothness: 5
+  moveOffset: {x: 4, y: 1.8, z: -5.5}
   rotOffset: {x: 0, y: 1, z: 0}
-  target: {fileID: 768489070982380491}
   sportCarController: {fileID: 514450681008378749}
-  helicopterController: {fileID: 0}
+  cam: {fileID: 5085302781543702379}
   eventPossess: {fileID: 0}
+  target: {fileID: 768489070982380491}
   divide: 17
+  basicVignetteIntensity: 0.2
+  maxVignetteIntensity: 0.3
+  basicChromaticAberrationIntensity: 0
+  maxChromaticAberrationIntensity: 0.75
   basicMoveOffsetZ: -5.5
   maxMoveOffsetZ: -15
   basicMoveOffsetY: 1.8
@@ -817,8 +821,6 @@ MonoBehaviour:
   maxRotOffsetY: 2.5
   baseCamFOV: 60
   maxCamFOV: 110
-  cam: {fileID: 5085302781543702379}
-  camHolder: {fileID: 8987037486008277795}
 --- !u!1 &4287115234674653309
 GameObject:
   m_ObjectHideFlags: 0
@@ -1183,9 +1185,9 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 0
-  m_Color: {r: 0.7169812, g: 0.7169812, b: 0.7169812, a: 1}
-  m_Intensity: 20
-  m_Range: 100
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 1
+  m_Range: 50
   m_SpotAngle: 120
   m_InnerSpotAngle: 80
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -1226,7 +1228,7 @@ Light:
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 5
+  m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
@@ -1351,9 +1353,9 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 0
-  m_Color: {r: 0.7169812, g: 0.7169812, b: 0.7169812, a: 1}
-  m_Intensity: 20
-  m_Range: 100
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 1
+  m_Range: 50
   m_SpotAngle: 120
   m_InnerSpotAngle: 80
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -1394,7 +1396,7 @@ Light:
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 5
+  m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
@@ -1538,9 +1540,9 @@ MonoBehaviour:
   inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   maxSpeedKmh: 130
   driveBackwardSpeed: 300
-  brakeForce: 500
+  brakeForce: 600
   naturalMotorBrakeForce: 200
-  brakeDrift: 350
+  brakeDrift: 300
   brakeTime: 1
   brakeCurve:
     serializedVersion: 2
@@ -1581,7 +1583,8 @@ MonoBehaviour:
   engineBrakeTorque: 20
   rotationSpeed: 10
   sensitivity: 100
-  camHolder: {fileID: 1311143693261987370}
+  camFollow: {fileID: 4111387635689366351}
+  globalVolume: {fileID: 0}
   wheels:
   - collider: {fileID: 2209753564848481948}
     visualWheelTransform: {fileID: 2685150422876424422}
@@ -1645,8 +1648,8 @@ MonoBehaviour:
   lightRFront: {fileID: 4446032125045735776}
   spotL: {fileID: 6722457367702454262}
   spotR: {fileID: 856548498217068859}
-  baseIntensity: 0.05
-  maxIntensity: 0.25
+  baseIntensity: 0.02
+  maxIntensity: 0.1
   motorBalance: 0.08
   motorBalanceTime: 0.05
   principalMesh: {fileID: 3688187138429557415}
@@ -1655,6 +1658,10 @@ MonoBehaviour:
   driftSteam_R: {fileID: 6690910986923356721}
   smoke_L: {fileID: 2058403957239810662}
   smoke_R: {fileID: 6077837182001974181}
+  vignette: {fileID: 0}
+  chromaticAberration: {fileID: 0}
+  speedKmh: 0
+  speedFactor: 0
   canNaturalBrakeMotor: 0
   curAngle: 0
   currentGear: 0
@@ -1664,8 +1671,6 @@ MonoBehaviour:
     m_Asset: {fileID: 0}
     m_Actions: []
     m_Bindings: []
-  speedKmh: 0
-  speedFactor: 0
 --- !u!114 &4792411205880110834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1846,7 +1851,7 @@ Light:
   serializedVersion: 12
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 0.5
   m_Range: 0.53
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -1973,7 +1978,7 @@ Light:
   serializedVersion: 12
   m_Type: 2
   m_Color: {r: 1, g: 0, b: 0, a: 1}
-  m_Intensity: 0.05
+  m_Intensity: 0.02
   m_Range: 0.2
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
